@@ -13,20 +13,16 @@ object Cmd {
     /** Collects a list of args and generates a command */
     class Args ( private val args: List[String] ) {
 
-        /** Adds a string */
-        def :: ( arg: String ): Args = new Args( arg :: args )
-
-        /** Adds a key */
-        def :: ( arg: Key ): Args = new Args( arg.toString :: args )
-
-        /** Adds an Int */
-        def :: ( arg: Int ): Args = new Args( arg.toString :: args )
-
-        /** Adds an Int */
-        def :: ( arg: Seq[Key] ): Args = arg.foldRight( this )( _ :: _ )
+        /** Adds a new argument to the left of this argument list */
+        def :: ( arg: Any ): Args = arg match {
+            case str: String => new Args( str :: args )
+            case (left, right) => left :: right :: this
+            case seq: Seq[_] => seq.foldRight( this )( _ :: _ )
+            case _ => new Args( arg.toString :: args )
+        }
 
         /** Finalizes a list of arguments */
-        def :: ( cmd: Command ): Command = Command( cmd.command, args )
+        def ::: ( cmd: Command ): Command = Command( cmd.command, args )
 
     }
 
