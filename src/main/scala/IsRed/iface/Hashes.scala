@@ -3,31 +3,7 @@ package com.roundeights.isred
 /**
  * Methods for interacting with Redis Hashes
  */
-trait Hashes {
-
-    /** A success or failures result */
-    type AckResult
-
-    /** An integer result */
-    type IntResult
-
-    /** A Boolean result */
-    type BoolResult
-
-    /** A optional bulk response: A String or Int */
-    type OptBulkResult
-
-    /** A map of bulk values */
-    type BulkMapResult
-
-    /** A map of bulk values */
-    type FloatResult
-
-    /** A set of bulk values */
-    type BulkSetResult
-
-    /** A sequence of bulk values */
-    type BulkSeqResult
+trait Hashes extends Iface {
 
     /** Delete one or more hash fields */
     def hDel ( key: Key, field: Key, fields: Key* ): IntResult

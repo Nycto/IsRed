@@ -12,29 +12,7 @@ object Position extends Enumeration {
 /**
  * Methods for interacting with Redis Lists
  */
-trait Lists {
-
-    /**
-     * The result of a pop. This is generally a tuple where the first
-     * element is the list that was popped from, and the second element is
-     * the value that was popped.
-     */
-    type PopResult
-
-    /** A bulk result */
-    type BulkResult
-
-    /** An integer result */
-    type IntResult
-
-    /** An optional bulk result */
-    type OptBulkResult
-
-    /** A sequence of bulk values */
-    type BulkSeqResult
-
-    /** A success or failures result */
-    type AckResult
+trait Lists extends Iface {
 
     /**
      * Remove and get the first element in a list, or block until one

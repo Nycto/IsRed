@@ -3,31 +3,13 @@ package com.roundeights.isred
 /**
  * Methods for interacting with Redis Keys
  */
-trait Keys {
-
-    /** A success or failures result */
-    type AckResult
-
-    /** A string result */
-    type StringResult
-
-    /** A list of keys */
-    type KeyListResult
-
-    /** An integer result */
-    type IntResult
-
-    /** A single key result */
-    type KeyResult
-
-    /** A result describing the type of a key */
-    type TypeResult
+trait Keys extends Iface {
 
     /** Delete a key */
     def del ( key: Key, keys: Key* ): AckResult
 
     /** Return a serialized version of the value stored at the specified key. */
-    def dump ( key: Key ): StringResult
+    def dump ( key: Key ): BulkResult
 
     /** Determine if a key exists */
     def exists ( key: Key ): AckResult
@@ -72,7 +54,7 @@ trait Keys {
     def ttl ( key: Key ): IntResult
 
     /** Determine the type stored at key */
-    def keyType ( key: Key ): TypeResult
+    def keyType ( key: Key ): KeyTypeResult
 
 }
 

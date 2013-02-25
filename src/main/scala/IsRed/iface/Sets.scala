@@ -3,22 +3,7 @@ package com.roundeights.isred
 /**
  * Methods for interacting with Redis Sets
  */
-trait Sets {
-
-    /** A success or failures result */
-    type AckResult
-
-    /** A optional bulk response: A String or Int */
-    type OptBulkResult
-
-    /** An integer result */
-    type IntResult
-
-    /** A set of bulk values */
-    type BulkSetResult
-
-    /** A Boolean result */
-    type BoolResult
+trait Sets extends Iface {
 
     /** Add one or more members to a set */
     def sAdd ( key: Key, member: String, members: String* ): IntResult

@@ -14,25 +14,7 @@ object BitwiseOp extends Enumeration {
 /**
  * Methods for interacting with Redis Strings
  */
-trait Strings {
-
-    /** A success or failures result */
-    type AckResult
-
-    /** A string result */
-    type StringResult
-
-    /** An optional string result */
-    type OptStringResult
-
-    /** An integer result */
-    type IntResult
-
-    /** A floating point number result */
-    type FloatResult
-
-    /** A map of String Options */
-    type MapOptStringResult
+trait Strings extends Iface {
 
     /** Append a value to a key */
     def append ( key: Key, value: String ): IntResult
@@ -59,16 +41,16 @@ trait Strings {
     def decrBy ( key: Key, decrement: Int ): IntResult
 
     /** Get the value of a key */
-    def get ( key: Key ): OptStringResult
+    def get ( key: Key ): OptBulkResult
 
     /** Returns the bit value at offset in the string value stored at key */
     def getBit ( key: Key, offset: Int ): IntResult
 
     /** Get a substring of the string stored at a key */
-    def getRange ( key: Key, start: Int, end: Int ): StringResult
+    def getRange ( key: Key, start: Int, end: Int ): BulkResult
 
     /** Set the string value of a key and return its old value */
-    def getSet ( key: Key, value: String ): OptStringResult
+    def getSet ( key: Key, value: String ): OptBulkResult
 
     /** Increment the integer value of a key by one */
     def incr ( key: Key ): IntResult
@@ -80,7 +62,7 @@ trait Strings {
     def incrByFloat ( key: Key, increment: Int ): FloatResult
 
     /** Get the values of all the given keys */
-    def mGet ( key: Key, keys: Key* ): MapOptStringResult
+    def mGet ( key: Key, keys: Key* ): BulkMapResult
 
     /** Set multiple keys to multiple values */
     def mSet ( pair: (Key, String), pairs: (Key, String) ): AckResult
