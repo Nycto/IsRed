@@ -48,20 +48,20 @@ trait Strings extends Iface {
         = getInt( Cmd("DECRBY") ::: key :: decrement :: Cmd() )
 
     /** Get the value of a key */
-    def get ( key: Key ): OptBulkResult
-        = getOptBulk( Cmd("GET") ::: key :: Cmd() )
+    def get[A] ( key: Key ): OptBulkResult[A]
+        = getOptBulk[A]( Cmd("GET") ::: key :: Cmd() )
 
     /** Returns the bit value at offset in the string value stored at key */
     def getBit ( key: Key, offset: Int ): IntResult
         = getInt( Cmd("GETBIT") ::: key :: offset :: Cmd() )
 
     /** Get a substring of the string stored at a key */
-    def getRange ( key: Key, start: Int, end: Int ): BulkResult
-        = getBulk( Cmd("GETRANGE") ::: key :: start :: end :: Cmd() )
+    def getRange[A] ( key: Key, start: Int, end: Int ): BulkResult[A]
+        = getBulk[A]( Cmd("GETRANGE") ::: key :: start :: end :: Cmd() )
 
     /** Set the string value of a key and return its old value */
-    def getSet ( key: Key, value: String ): OptBulkResult
-        = getOptBulk( Cmd("GETSET") ::: key :: value :: Cmd() )
+    def getSet[A] ( key: Key, value: String ): OptBulkResult[A]
+        = getOptBulk[A]( Cmd("GETSET") ::: key :: value :: Cmd() )
 
     /** Increment the integer value of a key by one */
     def incr ( key: Key ): IntResult
@@ -76,8 +76,8 @@ trait Strings extends Iface {
         = getFloat( Cmd("INCRBYFLOAT") ::: key :: increment :: Cmd() )
 
     /** Get the values of all the given keys */
-    def mGet ( key: Key, keys: Key* ): BulkMapResult
-        = getBulkMap( Cmd("MGET") ::: key :: keys :: Cmd() )
+    def mGet[A] ( key: Key, keys: Key* ): BulkMapResult[A]
+        = getBulkMap[A]( Cmd("MGET") ::: key :: keys :: Cmd() )
 
     /** Set multiple keys to multiple values */
     def mSet ( pair: (Key, String), pairs: (Key, String) ): AckResult

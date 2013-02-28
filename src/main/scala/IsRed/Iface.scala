@@ -1,5 +1,7 @@
 package com.roundeights.isred
 
+import scala.language.higherKinds
+
 /**
  * An interface for constructing Redis commands
  */
@@ -8,9 +10,6 @@ trait Iface {
     /** A success or failure result */
     type AckResult
 
-
-    /** A string, int or float result */
-    type BulkResult
 
     /** An integer result */
     type IntResult
@@ -22,17 +21,20 @@ trait Iface {
     type BoolResult
 
 
+    /** A string, int or float result */
+    type BulkResult[A]
+
     /** An optional bulk result */
-    type OptBulkResult
+    type OptBulkResult[A]
 
     /** A set of bulk values */
-    type BulkSetResult
+    type BulkSetResult[A]
 
     /** A sequence of bulk values */
-    type BulkSeqResult
+    type BulkSeqResult[A]
 
     /** A map of bulk values */
-    type BulkMapResult
+    type BulkMapResult[A]
 
 
     /**
@@ -56,9 +58,6 @@ trait Iface {
     def getAck( command: Command ): AckResult
 
 
-    /** A string, int or float result */
-    def getBulk( command: Command ): BulkResult
-
     /** An integer result */
     def getInt( command: Command ): IntResult
 
@@ -69,17 +68,20 @@ trait Iface {
     def getBool( command: Command ): BoolResult
 
 
+    /** A string, int or float result */
+    def getBulk[A]( command: Command ): BulkResult[A]
+
     /** An optional bulk result */
-    def getOptBulk( command: Command ): OptBulkResult
+    def getOptBulk[A]( command: Command ): OptBulkResult[A]
 
     /** A set of bulk values */
-    def getBulkSet( command: Command ): BulkSetResult
+    def getBulkSet[A]( command: Command ): BulkSetResult[A]
 
     /** A sequence of bulk values */
-    def getBulkSeq( command: Command ): BulkSeqResult
+    def getBulkSeq[A]( command: Command ): BulkSeqResult[A]
 
     /** A map of bulk values */
-    def getBulkMap( command: Command ): BulkMapResult
+    def getBulkMap[A]( command: Command ): BulkMapResult[A]
 
 
     /**

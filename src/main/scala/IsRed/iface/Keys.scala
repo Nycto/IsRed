@@ -10,8 +10,8 @@ trait Keys extends Iface {
         = getAck( Cmd("DEL") ::: key :: keys :: Cmd() )
 
     /** Return a serialized version of the value stored at the specified key. */
-    def dump ( key: Key ): BulkResult
-        = getBulk( Cmd("DUMP") ::: key :: Cmd() )
+    def dump[A] ( key: Key ): BulkResult[A]
+        = getBulk[A]( Cmd("DUMP") ::: key :: Cmd() )
 
     /** Determine if a key exists */
     def exists ( key: Key ): AckResult
