@@ -39,7 +39,7 @@ object Netty {
     private lazy val shared = new Netty
 
     /** Returns the shared Netty instance */
-    def apply(): Netty = shared
+    def apply(): Netty = new Netty
 
 }
 
@@ -57,36 +57,43 @@ class Netty ( channelFactory: ChannelFactory ) {
     /** A partially built Netty connection */
     class Builder private[Netty] (
         private val address: InetSocketAddress,
-        private val bootstrap: ClientBootstrap
+        private val pipeline: List[(String, ChannelHandler)] = List(),
+        private val options: Map[String, Boolean] = Map()
     ) {
 
-        /** Adds a pipeline to the eventual channel */
-        def withPipeline ( callback: (ChannelPipeline) => Unit ): Builder = {
-            callback( bootstrap.getPipeline )
-            this
-        }
-
         /** Adds a list of Channel Handlers to the pipeline */
-        def add ( name: String, handler: ChannelHandler ): Builder = {
-            bootstrap.getPipeline.addLast( name, handler )
-            this
-        }
+        def add ( handler: (String, ChannelHandler)* ): Builder = new Builder(
+            address, List(handler:_*).reverse ::: pipeline, options
+        )
 
-        /** Builds the netty client */
-        def build: Future[Channel]
-            = Netty.futureify( bootstrap.connect(address) )
+        /** Sets an option */
+        def set ( option: (String, Boolean)* ): Builder = new Builder(
+            address, pipeline, options ++ Map( option:_* )
+        )
+
+        /** Sets the keep alive option */
+        def keepAlive: Builder = set("keepAlive" -> true)
+
+        /** Sets the tcpNoDelay option */
+        def tcpNoDelay: Builder = set("tcpNoDelay" -> true)
+
+        /** Uses the current config to open a connection */
+        def connect: Future[Channel] = {
+            val bootstrap = new ClientBootstrap( channelFactory )
+
+            options.map( pair => bootstrap.setOption( pair._1, pair._2 ) )
+
+            val resolvedPipe = Channels.pipeline
+            bootstrap.setPipeline( resolvedPipe )
+            pipeline.map( h => resolvedPipe.addFirst( h._1, h._2 ) )
+
+            Netty.futureify( bootstrap.connect(address) )
+        }
 
     }
 
     /** Initializes a connection to the given address */
-    def open ( address: InetSocketAddress ): Builder = {
-        val bootstrap = new ClientBootstrap( channelFactory )
-        bootstrap.setPipeline( Channels.pipeline )
-        bootstrap.setOption("tcpNoDelay", true)
-        bootstrap.setOption("keepAlive", true)
-
-        new Builder( address, bootstrap )
-    }
+    def open ( address: InetSocketAddress ): Builder = new Builder( address )
 
     /** Initializes a connection to the given address */
     def open ( host: String, port: Int ): Builder
