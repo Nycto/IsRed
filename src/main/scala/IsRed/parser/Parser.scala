@@ -33,7 +33,17 @@ object Parser {
 trait Parser[T] {
 
     /** Parses the given byte array */
-    def parse ( bytes: Array[Byte], start: Int = 0 ): Parser.Result[T]
+    def parse ( bytes: Array[Byte], start: Int ): Parser.Result[T]
+
+    /** Parses the given byte array */
+    def parse ( bytes: Array[Byte] ): Parser.Result[T] = parse( bytes, 0 )
+
+    /** Parses the given string as a UTF8 byte array */
+    def parse ( str: String, start: Int ): Parser.Result[T]
+        = parse( str.getBytes("UTF8"), start )
+
+    /** Parses the given string as a UTF8 byte array */
+    def parse ( str: String ): Parser.Result[T] = parse( str, 0 )
 
 }
 
@@ -44,6 +54,10 @@ class ParseUntil[T] (
     private val delim: Array[Byte],
     private val onComplete: (Array[Byte]) => T
 ) extends Parser[T] {
+
+    /** Uses a UTF8 string as the delimiter */
+    def this ( delim: String, onComplete: (Array[Byte]) => T )
+        = this( delim.getBytes("UTF8"), onComplete )
 
     assert( delim.length > 0, "Delimieter must not be empty" )
 
@@ -57,10 +71,7 @@ class ParseUntil[T] (
     private var delimOffset = 0
 
     /** Parses the given byte array */
-    override def parse (
-        bytes: Array[Byte],
-        start: Int = 0
-    ): Parser.Result[T] = {
+    override def parse ( bytes: Array[Byte], start: Int ): Parser.Result[T] = {
 
         // Recursively read bytes from the input array
         @tailrec def read ( offset: Int ): Parser.Result[T] = {
@@ -77,6 +88,7 @@ class ParseUntil[T] (
                 )
             }
             else {
+
                 if ( bytes(offset) == delim(delimOffset) ) {
                     delimOffset = delimOffset + 1
                 }
@@ -113,10 +125,7 @@ class ParseLength[T] (
     private var count = 0
 
     /** Parses the given byte array */
-    override def parse (
-        bytes: Array[Byte],
-        start: Int = 0
-    ): Parser.Result[T] = {
+    override def parse ( bytes: Array[Byte], start: Int ): Parser.Result[T] = {
 
         val safeStart = Math.max(0, start)
 
