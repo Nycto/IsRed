@@ -7,20 +7,20 @@ import scala.annotation.tailrec
 object Parser {
 
     /** The result of parsing a chunk of bytes */
-    sealed trait Result[T] {
+    sealed trait Result[+T] {
 
         /** The number of bytes consumed from the processed byte array */
         def consumed: Int
     }
 
     /** Marks that a fully formed result is available */
-    case class Complete[T] (
+    case class Complete[+T] (
         override val consumed: Int,
         val reply: T
     ) extends Result[T]
 
     /** Marks that more data is needed before a result is available */
-    case class Incomplete[T] ( override val consumed: Int ) extends Result[T]
+    case class Incomplete[+T] ( override val consumed: Int ) extends Result[T]
 
 }
 
@@ -30,7 +30,7 @@ object Parser {
  * Parsers are mutable and single shot. You will need to instantiate a new
  * instance every time you want to parse a new response.
  */
-trait Parser[T] {
+trait Parser[+T] {
 
     /** Parses the given byte array */
     def parse ( bytes: Array[Byte], start: Int ): Parser.Result[T]
@@ -50,7 +50,7 @@ trait Parser[T] {
 /**
  * Parses byte arrays until a delimiter is reached
  */
-class ParseUntil[T] (
+class ParseUntil[+T] (
     private val delim: Array[Byte],
     private val onComplete: (Array[Byte]) => T
 ) extends Parser[T] {
@@ -113,7 +113,7 @@ class ParseUntil[T] (
 /**
  * Parses a specific number of bytes
  */
-class ParseLength[T] (
+class ParseLength[+T] (
     private val total: Int,
     private val onComplete: (Array[Byte]) => T
 ) extends Parser[T] {
