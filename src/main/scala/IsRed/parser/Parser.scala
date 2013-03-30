@@ -33,7 +33,7 @@ object Parser {
 trait Parser[T] {
 
     /** Parses the given byte array */
-    def parse ( bytes: Array[Byte] ): Parser.Result[T]
+    def parse ( bytes: Array[Byte], start: Int = 0 ): Parser.Result[T]
 
 }
 
@@ -57,18 +57,24 @@ class ParseUntil[T] (
     private var delimOffset = 0
 
     /** Parses the given byte array */
-    def parse ( bytes: Array[Byte] ): Parser.Result[T] = {
+    override def parse (
+        bytes: Array[Byte],
+        start: Int = 0
+    ): Parser.Result[T] = {
 
-        // Recursively read characters from the result
+        // Recursively read bytes from the input array
         @tailrec def read ( offset: Int ): Parser.Result[T] = {
-            if ( offset == bytes.length ) {
-                Parser.Incomplete( offset )
+            if ( offset >= bytes.length ) {
+                Parser.Incomplete( offset - start )
             }
             else if (
                 bytes(offset) == delim(delimOffset)
                 && delimOffset == delimLen
             ) {
-                Parser.Complete( offset + 1, onComplete(buffer.toByteArray) )
+                Parser.Complete(
+                    offset + 1 - start,
+                    onComplete(buffer.toByteArray)
+                )
             }
             else {
                 if ( bytes(offset) == delim(delimOffset) ) {
@@ -87,7 +93,7 @@ class ParseUntil[T] (
             }
         }
 
-        read(0)
+        read( start )
     }
 
 }

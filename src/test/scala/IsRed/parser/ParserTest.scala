@@ -132,6 +132,30 @@ class ParseUntilTest extends Specification {
 
     }
 
+    "Parsing with an initial offset" should {
+
+        "Skip the first few bytes" in {
+            val parser = new ParseUntil(
+                "\n".getBytes("UTF8"),
+                new String(_, "UTF8")
+            )
+
+            parser.parse( "Testing\n".getBytes("UTF8"), 2 ) must_==
+                Parser.Complete( 6, "sting" )
+        }
+
+        "Return an empty incomplete when the start is beyond the length" in {
+            val parser = new ParseUntil(
+                "\n".getBytes("UTF8"),
+                new String(_, "UTF8")
+            )
+
+            parser.parse( "Testing\n".getBytes("UTF8"), 50 ) must_==
+                Parser.Incomplete( 0 )
+        }
+
+    }
+
 }
 
 
