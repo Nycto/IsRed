@@ -151,4 +151,48 @@ class ParseLength[+T] (
 
 }
 
+/**
+ * Parses with one parser until it completes, then moves on to another parser.
+ */
+class ParseChain[A,B] (
+    private val first: Parser[A],
+    private val second: Parser[B]
+) extends Parser[(A,B)] {
+
+    /** The completed value from the first parser */
+    private var firstResult: Option[A] = None
+
+    /** {@inheritDoc} */
+    override def parse (
+        bytes: Array[Byte], start: Int
+    ): Parser.Result[(A,B)] = firstResult match {
+        case None => first.parse( bytes, start ) match {
+            case Parser.Incomplete(used) => Parser.Incomplete(used)
+            case Parser.Complete(used, result) => {
+                firstResult = Some(result)
+
+                if ( start + used >= bytes.length ) {
+                    Parser.Incomplete(used)
+                }
+                else {
+                    parse( bytes, start + used ) match {
+                        case Parser.Incomplete( consumed )
+                            => Parser.Incomplete(consumed + used)
+                        case Parser.Complete(consumed, result)
+                            => Parser.Complete(consumed + used, result)
+                    }
+                }
+            }
+        }
+        case Some(_) => second.parse( bytes, start ) match {
+            case Parser.Incomplete(used) => Parser.Incomplete(used)
+            case Parser.Complete(used, result) => {
+                Parser.Complete(used, (firstResult.get, result))
+            }
+        }
+    }
+
+}
+
+
 

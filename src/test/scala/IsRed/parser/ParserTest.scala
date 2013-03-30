@@ -190,3 +190,80 @@ class ParseLengthTest extends Specification {
 }
 
 
+class ParseChainTest extends Specification {
+
+    // Converts a byte array to a string
+    def asString ( bytes: Array[Byte] ) = new String(bytes, "UTF8")
+
+    "Parsing a chain" should {
+
+        "Handle data evenly split across multiple chunks" in {
+            val parser = new ParseChain(
+                new ParseLength( 5, asString(_) ),
+                new ParseLength( 8, asString(_) )
+            )
+
+            parser.parse("Data!") must_== Parser.Incomplete(5)
+            parser.parse("And Data") must_==
+                Parser.Complete(8, ("Data!", "And Data"))
+        }
+
+        "Handle data extra data in the first chunk" in {
+            val parser = new ParseChain(
+                new ParseLength( 5, asString(_) ),
+                new ParseLength( 8, asString(_) )
+            )
+
+            parser.parse("Data And") must_== Parser.Incomplete(8)
+            parser.parse(" Data") must_==
+                Parser.Complete(5, ("Data ", "And Data"))
+        }
+
+        "Handle missing data in the first chunk" in {
+            val parser = new ParseChain(
+                new ParseLength( 5, asString(_) ),
+                new ParseLength( 8, asString(_) )
+            )
+
+            parser.parse("Da") must_== Parser.Incomplete(2)
+            parser.parse("ta And Data") must_==
+                Parser.Complete(11, ("Data ", "And Data"))
+        }
+
+        "Handle data in a single chunk" in {
+            val parser = new ParseChain(
+                new ParseLength( 5, asString(_) ),
+                new ParseLength( 8, asString(_) )
+            )
+
+            parser.parse("Data And Data") must_==
+                Parser.Complete(13, ("Data ", "And Data"))
+        }
+
+        "Handle a start offset" in {
+            val parser = new ParseChain(
+                new ParseLength( 5, asString(_) ),
+                new ParseLength( 8, asString(_) )
+            )
+
+            parser.parse("Junk and Data And Data", 9) must_==
+                Parser.Complete(13, ("Data ", "And Data"))
+        }
+
+        "Handle a chain in a chain" in {
+            val parser = new ParseChain(
+                new ParseLength( 4, asString(_) ),
+                new ParseChain(
+                    new ParseLength( 5, asString(_) ),
+                    new ParseLength( 4, asString(_) )
+                )
+            )
+
+            parser.parse("Data And Data") must_==
+                Parser.Complete(13, ("Data", (" And ", "Data")))
+        }
+
+    }
+
+}
+
