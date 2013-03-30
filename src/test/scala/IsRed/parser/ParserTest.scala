@@ -158,4 +158,82 @@ class ParseUntilTest extends Specification {
 
 }
 
+class ParseLengthTest extends Specification {
+
+    "Parsing a the entire amount in one chunk" should {
+
+        "Return the completed result" in {
+            val parser = new ParseLength( 5, new String(_, "UTF8") )
+
+            parser.parse( "Hello!".getBytes("UTF8") ) must_==
+                Parser.Complete( 5, "Hello" )
+
+            parser.parse( "Extra".getBytes("UTF8") ) must_==
+                Parser.Complete( 0, "Hello" )
+        }
+
+    }
+
+    "Parsing across multipe chunks" should {
+
+        "Return incomplete results until it's fulfilled" in {
+            val parser = new ParseLength( 16, new String(_, "UTF8") )
+
+            parser.parse( "There ".getBytes("UTF8") ) must_==
+                Parser.Incomplete( 6 )
+
+            parser.parse( "are ".getBytes("UTF8") ) must_==
+                Parser.Incomplete( 4 )
+
+            parser.parse( "Chunks".getBytes("UTF8") ) must_==
+                Parser.Complete( 6, "There are Chunks" )
+        }
+
+    }
+
+    "Parsing for a 0 length result" should {
+
+        "Returns Complete when content is passed" in {
+            val parser = new ParseLength( 0, new String(_, "UTF8") )
+
+            parser.parse( "There ".getBytes("UTF8") ) must_==
+                Parser.Complete(0, "")
+        }
+
+        "Returns Complete when no content is passed" in {
+            val parser = new ParseLength( 0, new String(_, "UTF8") )
+
+            parser.parse( new Array(0) ) must_==
+                Parser.Complete(0, "")
+        }
+
+    }
+
+    "Parsing with a start value" should {
+
+        "ignore the initial bytes" in {
+            val parser = new ParseLength( 4, new String(_, "UTF8") )
+
+            parser.parse( "Data Point".getBytes("UTF8"), 2 ) must_==
+                Parser.Complete( 4, "ta P" )
+        }
+
+        "Not parse anything when the start is greater than the input" in {
+            val parser = new ParseLength( 4, new String(_, "UTF8") )
+
+            parser.parse( "Data Point".getBytes("UTF8"), 20 ) must_==
+                Parser.Incomplete(0)
+        }
+
+        "Assume a negative value means 0" in {
+            val parser = new ParseLength( 4, new String(_, "UTF8") )
+
+            parser.parse( "Data".getBytes("UTF8"), -10 ) must_==
+                Parser.Complete( 4, "Data" )
+        }
+
+    }
+
+}
+
 

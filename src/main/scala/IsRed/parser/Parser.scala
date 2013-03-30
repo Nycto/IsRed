@@ -98,4 +98,48 @@ class ParseUntil[T] (
 
 }
 
+/**
+ * Parses a specific number of bytes
+ */
+class ParseLength[T] (
+    private val total: Int,
+    private val onComplete: (Array[Byte]) => T
+) extends Parser[T] {
+
+    /** Collects the parsed data */
+    private val buffer = new ByteArrayOutputStream
+
+    /** The number of bytes parsed thus far */
+    private var count = 0
+
+    /** Parses the given byte array */
+    override def parse (
+        bytes: Array[Byte],
+        start: Int = 0
+    ): Parser.Result[T] = {
+
+        val safeStart = Math.max(0, start)
+
+        // The number of bytes still needed to fulfill this parser
+        val needed = total - count
+
+        // The number of bytes available to be read
+        val available = Math.max( bytes.length - safeStart, 0 )
+
+        // The number of bytes to actually read
+        val toRead = Math.min( needed, available )
+
+        if ( toRead > 0 ) {
+            buffer.write( bytes, safeStart, toRead )
+            count = count + toRead
+        }
+
+        if ( count == total )
+            Parser.Complete( toRead, onComplete(buffer.toByteArray) )
+        else
+            Parser.Incomplete( toRead )
+    }
+
+}
+
 
