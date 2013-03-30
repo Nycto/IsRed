@@ -4,6 +4,19 @@ import org.specs2.mutable._
 
 class ParseUntilTest extends Specification {
 
+    "Parsing an empty byte array" should {
+
+        "Return an incomplete result" in {
+            val parser = new ParseUntil(
+                "\n".getBytes("UTF8"),
+                new String(_, "UTF8")
+            )
+
+            parser.parse( new Array(0) ) must_== Parser.Incomplete( 0 )
+        }
+
+    }
+
     "Parsing with a single byte delimiter" should {
 
         "generate a full response when it finds the delimiter" in {
