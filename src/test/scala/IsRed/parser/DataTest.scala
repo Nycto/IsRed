@@ -31,4 +31,29 @@ class IntParserTest extends Specification {
 
 }
 
+class StringParserTest extends Specification {
+
+    "A String parser" should {
+
+        "Generate a StringReply instance" in {
+            val parser = new StringParser
+
+            parser.parse("$7\r\nTesting\r\n", 1) must_==
+                Parser.Complete( 12, StringReply("Testing") )
+        }
+
+        "Handle multiple chunks" in {
+            val parser = new StringParser
+
+            parser.parse("$7", 1) must_== Parser.Incomplete(1)
+            parser.parse("") must_== Parser.Incomplete(0)
+            parser.parse("\r\nTest") must_== Parser.Incomplete(6)
+            parser.parse("ing\r\n") must_==
+                Parser.Complete( 5, StringReply("Testing") )
+        }
+
+    }
+
+}
+
 
