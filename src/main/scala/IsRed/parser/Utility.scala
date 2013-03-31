@@ -113,11 +113,18 @@ class ParseLength[+T] (
  */
 class ParseChain[A,B] (
     private val first: Parser[A],
-    private val second: Parser[B]
+    private val second: (A) => Parser[B]
 ) extends Parser[(A,B)] {
 
     /** The completed value from the first parser */
     private var firstResult: Option[A] = None
+
+    /** Becomes populated with the second parser */
+    private var secondParser: Option[Parser[B]] = None
+
+    /** An alternate constructor, for when a deferred build isn't needed */
+    def this ( first: Parser[A], second: Parser[B] )
+        = this( first, (_) => second )
 
     /** {@inheritDoc} */
     override def parse (
@@ -134,7 +141,10 @@ class ParseChain[A,B] (
             })
         }
         case Some(_) => {
-            second.parse( bytes, start ).map( firstResult.get -> _ )
+            if ( secondParser.isEmpty )
+                secondParser = Some( second(firstResult.get) )
+
+            secondParser.get.parse( bytes, start ).map( firstResult.get -> _ )
         }
     }
 
