@@ -52,6 +52,20 @@ class StringParserTest extends Specification {
                 Parser.Complete( 5, StringReply("Testing") )
         }
 
+        "Parse zero length strings" in {
+            val parser = new StringParser
+
+            parser.parse("$0\r\n\r\n", 1) must_==
+                Parser.Complete( 5, StringReply("") )
+        }
+
+        "Parse Null Responses" in {
+            val parser = new StringParser
+
+            parser.parse("$-1\r\n", 1) must_==
+                Parser.Complete( 4, NullReply() )
+        }
+
     }
 
 }
