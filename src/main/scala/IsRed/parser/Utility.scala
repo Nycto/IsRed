@@ -164,3 +164,41 @@ class ParserWrap[T] ( private val parser: Parser[T] ) extends Parser[T] {
 }
 
 
+/**
+ * A parser that chooses another parser based on the first byte processed
+ */
+class ParseSwitch[T] (
+    private val parsers: Map[Byte, Parser[T]]
+) extends Parser[T] {
+
+    /** Creates a new instance using Chars instead of Bytes */
+    def this( parsers: (Char, Parser[T])* ) = this(
+        parsers.foldLeft( Map[Byte, Parser[T]]() ) {
+            (accum, pair) => accum + ( pair._1.toByte -> pair._2 )
+        }
+    )
+
+    /** Parses the first byte of a request */
+    private val firstByte = new ParseLength(1, (data: Array[Byte]) => data(0))
+
+    /** The parser that was selected */
+    private var parser: Option[Parser[T]] = None
+
+    /** {@inheritDoc} */
+    override def parse ( bytes: Array[Byte], start: Int ): Parser.Result[T] = {
+        parser match {
+            case None => {
+                firstByte.parse( bytes, start ).flatMap( (used, byte) => {
+                    parser = Some( parsers.get(byte).getOrElse(
+                        throw new Parser.UnexpectedByte(byte, parsers.keys)
+                    ))
+
+                    parse( bytes, start + used ).addBytes( used )
+                })
+            }
+            case Some(parse) => parse.parse( bytes, start )
+        }
+    }
+
+}
+

@@ -274,3 +274,42 @@ class ParseChainTest extends Specification {
 
 }
 
+class ParseSwitchTest extends Specification {
+
+    // Converts a byte array to a string
+    def asString ( bytes: Array[Byte] ) = new String(bytes, "UTF8")
+
+    "A parse switch" should {
+
+        "Handle data in a single chunk" in {
+            val parser = new ParseSwitch(
+                '5' -> new ParseLength( 5, asString(_) ),
+                '8' -> new ParseLength( 8, asString(_) )
+            )
+
+            parser.parse("5abcde") must_== Parser.Complete(6, "abcde")
+        }
+
+        "Handle data in a multiple chunks" in {
+            val parser = new ParseSwitch(
+                '5' -> new ParseLength( 5, asString(_) ),
+                '8' -> new ParseLength( 8, asString(_) )
+            )
+
+            parser.parse("8ab") must_== Parser.Incomplete(3)
+            parser.parse("cdefgh") must_== Parser.Complete(6, "abcdefgh")
+        }
+
+        "Throw when a byte doesn't have a registerd parser" in {
+            val parser = new ParseSwitch(
+                '5' -> new ParseLength( 5, asString(_) ),
+                '8' -> new ParseLength( 8, asString(_) )
+            )
+
+            parser.parse("!12345") must throwA[Parser.UnexpectedByte]
+        }
+
+    }
+
+}
+

@@ -3,6 +3,17 @@ package com.roundeights.isred
 /** Parser Companion... */
 object Parser {
 
+    /** Thrown when an unexpected byte is encountered */
+    case class UnexpectedByte(
+        byte: Byte, allowed: Iterable[Byte]
+    ) extends Exception(
+        "Unexpected byte encountered: %d; Allowed bytes: %s".format(
+            byte.toInt,
+            allowed.map( _.toInt ).mkString(", ")
+        )
+    )
+
+
     /** The result of parsing a chunk of bytes */
     sealed trait Result[+T] {
 
