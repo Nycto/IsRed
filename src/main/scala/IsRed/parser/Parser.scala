@@ -56,6 +56,18 @@ object Parser {
             = new Incomplete( consumed )
     }
 
+
+    /** Converts a byte array to a UTF8 string */
+    private [isred] def asStr ( bytes: Array[Byte] )
+        = new String(bytes, "UTF8")
+
+
+    /** A shared \r\n byte array */
+    private[isred] val ENDLINE: Array[Byte] = "\r\n".getBytes("UTF8")
+
+    /** A shared " " byte array */
+    private[isred] val SPACE: Array[Byte] = " ".getBytes("UTF8")
+
 }
 
 /**
