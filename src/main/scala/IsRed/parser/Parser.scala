@@ -11,16 +11,53 @@ object Parser {
 
         /** The number of bytes consumed from the processed byte array */
         def consumed: Int
+
+        /** Generates a new Result from this result */
+        def map[A]( callback: (T) => A ): Result[A]
+
+        /** Generates a new Result, with a modified consumed byte count */
+        def addBytes( addBytes: Int ): Result[T]
+
+        /** Executes a callback to generate a new result */
+        def flatMap[A]( callback: (Int, T) => Result[A] ): Result[A]
     }
 
     /** Marks that a fully formed result is available */
     case class Complete[+T] (
         override val consumed: Int,
         val reply: T
-    ) extends Result[T]
+    ) extends Result[T] {
+
+        /** {@inheritDoc} */
+        override def map[A]( callback: (T) => A ): Result[A]
+            = new Complete( consumed, callback(reply) )
+
+        /** {@inheritDoc} */
+        override def addBytes( addBytes: Int ): Result[T]
+            = new Complete( consumed + addBytes, reply )
+
+        /** {@inheritDoc} */
+        def flatMap[A]( callback: (Int, T) => Result[A] ): Result[A]
+            = callback(consumed, reply)
+    }
 
     /** Marks that more data is needed before a result is available */
-    case class Incomplete[+T] ( override val consumed: Int ) extends Result[T]
+    case class Incomplete[+T] (
+        override val consumed: Int
+    ) extends Result[T] {
+
+        /** {@inheritDoc} */
+        override def map[A]( callback: (T) => A ): Result[A]
+            = new Incomplete( consumed )
+
+        /** {@inheritDoc} */
+        override def addBytes( addBytes: Int ): Result[T]
+            = new Incomplete( consumed + addBytes )
+
+        /** {@inheritDoc} */
+        def flatMap[A]( callback: (Int, T) => Result[A] ): Result[A]
+            = new Incomplete( consumed )
+    }
 
 }
 
@@ -166,29 +203,18 @@ class ParseChain[A,B] (
     override def parse (
         bytes: Array[Byte], start: Int
     ): Parser.Result[(A,B)] = firstResult match {
-        case None => first.parse( bytes, start ) match {
-            case Parser.Incomplete(used) => Parser.Incomplete(used)
-            case Parser.Complete(used, result) => {
+        case None => {
+            first.parse( bytes, start ).flatMap( (used, result) => {
                 firstResult = Some(result)
 
-                if ( start + used >= bytes.length ) {
+                if ( start + used >= bytes.length )
                     Parser.Incomplete(used)
-                }
-                else {
-                    parse( bytes, start + used ) match {
-                        case Parser.Incomplete( consumed )
-                            => Parser.Incomplete(consumed + used)
-                        case Parser.Complete(consumed, result)
-                            => Parser.Complete(consumed + used, result)
-                    }
-                }
-            }
+                else
+                    parse( bytes, start + used ).addBytes( used )
+            })
         }
-        case Some(_) => second.parse( bytes, start ) match {
-            case Parser.Incomplete(used) => Parser.Incomplete(used)
-            case Parser.Complete(used, result) => {
-                Parser.Complete(used, (firstResult.get, result))
-            }
+        case Some(_) => {
+            second.parse( bytes, start ).map( firstResult.get -> _ )
         }
     }
 
