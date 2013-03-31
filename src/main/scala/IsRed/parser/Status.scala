@@ -3,19 +3,12 @@ package com.roundeights.isred
 /**
  * Parses a Success status response
  */
-class SuccessParser extends Parser[Reply] {
-
-    /** Collects the parsed data */
-    private val parser = new ParseUntil(
+class SuccessParser extends ParserWrap[Reply] (
+    new ParseUntil(
         Parser.ENDLINE,
         (bytes: Array[Byte]) => SuccessReply( Parser.asStr(bytes) )
     )
-
-    /** {@inheritDoc} */
-    override def parse ( bytes: Array[Byte], start: Int ): Parser.Result[Reply]
-        = parser.parse( bytes, start )
-
-}
+)
 
 /**
  * Parses a Failure status response

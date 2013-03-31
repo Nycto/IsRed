@@ -140,4 +140,14 @@ class ParseChain[A,B] (
 
 }
 
+/**
+ * A parser that wraps another parser
+ */
+class ParserWrap[T] ( private val parser: Parser[T] ) extends Parser[T] {
+
+    /** {@inheritDoc} */
+    override def parse ( bytes: Array[Byte], start: Int ): Parser.Result[T]
+        = parser.parse( bytes, start )
+}
+
 
