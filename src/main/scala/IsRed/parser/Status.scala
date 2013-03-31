@@ -13,22 +13,12 @@ class SuccessParser extends ParserWrap[Reply] (
 /**
  * Parses a Failure status response
  */
-class FailureParser extends Parser[Reply] {
-
-    /** Collects the parsed data for the error code */
-    private val codeParser = new ParseChain(
+class FailureParser extends ParserWrap[Reply] (
+    new ParseChain(
         new ParseUntil( Parser.SPACE, Parser.asStr(_) ),
-        new ParseUntil( Parser.ENDLINE, Parser.asStr(_) )
+        new ParseUntil( Parser.ENDLINE, Parser.asStr(_) ),
+        (code: String, msg: String) => FailureReply(code, msg)
     )
-
-    /** {@inheritDoc} */
-    override def parse (
-        bytes: Array[Byte], start: Int
-    ): Parser.Result[Reply] = {
-        codeParser.parse(bytes, start)
-            .map( result => FailureReply( result._1, result._2 ) )
-    }
-
-}
+)
 
 

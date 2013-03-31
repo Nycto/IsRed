@@ -200,7 +200,8 @@ class ParseChainTest extends Specification {
         "Handle data evenly split across multiple chunks" in {
             val parser = new ParseChain(
                 new ParseLength( 5, asString(_) ),
-                new ParseLength( 8, asString(_) )
+                new ParseLength( 8, asString(_) ),
+                (a: String, b: String) => a -> b
             )
 
             parser.parse("Data!") must_== Parser.Incomplete(5)
@@ -211,7 +212,8 @@ class ParseChainTest extends Specification {
         "Handle data extra data in the first chunk" in {
             val parser = new ParseChain(
                 new ParseLength( 5, asString(_) ),
-                new ParseLength( 8, asString(_) )
+                new ParseLength( 8, asString(_) ),
+                (a: String, b: String) => a -> b
             )
 
             parser.parse("Data And") must_== Parser.Incomplete(8)
@@ -222,7 +224,8 @@ class ParseChainTest extends Specification {
         "Handle missing data in the first chunk" in {
             val parser = new ParseChain(
                 new ParseLength( 5, asString(_) ),
-                new ParseLength( 8, asString(_) )
+                new ParseLength( 8, asString(_) ),
+                (a: String, b: String) => a -> b
             )
 
             parser.parse("Da") must_== Parser.Incomplete(2)
@@ -233,7 +236,8 @@ class ParseChainTest extends Specification {
         "Handle data in a single chunk" in {
             val parser = new ParseChain(
                 new ParseLength( 5, asString(_) ),
-                new ParseLength( 8, asString(_) )
+                new ParseLength( 8, asString(_) ),
+                (a: String, b: String) => a -> b
             )
 
             parser.parse("Data And Data") must_==
@@ -243,7 +247,8 @@ class ParseChainTest extends Specification {
         "Handle a start offset" in {
             val parser = new ParseChain(
                 new ParseLength( 5, asString(_) ),
-                new ParseLength( 8, asString(_) )
+                new ParseLength( 8, asString(_) ),
+                (a: String, b: String) => a -> b
             )
 
             parser.parse("Junk and Data And Data", 9) must_==
@@ -255,8 +260,10 @@ class ParseChainTest extends Specification {
                 new ParseLength( 4, asString(_) ),
                 new ParseChain(
                     new ParseLength( 5, asString(_) ),
-                    new ParseLength( 4, asString(_) )
-                )
+                    new ParseLength( 4, asString(_) ),
+                    (a: String, b: String) => a -> b
+                ),
+                (a: String, b: (String, String)) => a -> b
             )
 
             parser.parse("Data And Data") must_==

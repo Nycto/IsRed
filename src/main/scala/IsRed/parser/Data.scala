@@ -15,27 +15,18 @@ class IntParser extends ParserWrap[Reply] (
 /**
  * Parses a String (Bulk) reply
  */
-class StringParser extends Parser[Reply] {
-
-    /** The parser for processing a String */
-    private val parser = new ParseChain(
+class StringParser extends ParserWrap[Reply](
+    new ParseChain(
         new ParseUntil(
             Parser.ENDLINE,
             (bytes: Array[Byte]) => Integer.parseInt( Parser.asStr(bytes) )
         ),
         (length: Int) => new ParseChain(
             new ParseLength( length, Parser.asStr _ ),
-            new ParseUntil( Parser.ENDLINE, (bytes: Array[Byte]) => () )
-        )
+            new ParseUntil( Parser.ENDLINE, (bytes: Array[Byte]) => () ),
+            (str: String, _: Unit) => StringReply(str)
+        ),
+        (_: Int, output: Reply) => output
     )
-
-    /** {@inheritDoc} */
-    override def parse (
-        bytes: Array[Byte],
-        start: Int
-    ): Parser.Result[Reply] = {
-        parser.parse( bytes, start ).map( tuple => StringReply( tuple._2._1 ) )
-    }
-
-}
+)
 

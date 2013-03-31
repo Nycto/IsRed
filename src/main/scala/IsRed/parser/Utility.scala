@@ -111,10 +111,11 @@ class ParseLength[+T] (
 /**
  * Parses with one parser until it completes, then moves on to another parser.
  */
-class ParseChain[A,B] (
+class ParseChain[A,B,R] (
     private val first: Parser[A],
-    private val second: (A) => Parser[B]
-) extends Parser[(A,B)] {
+    private val second: (A) => Parser[B],
+    private val finish: (A,B) => R
+) extends Parser[R] {
 
     /** The completed value from the first parser */
     private var firstResult: Option[A] = None
@@ -123,13 +124,13 @@ class ParseChain[A,B] (
     private var secondParser: Option[Parser[B]] = None
 
     /** An alternate constructor, for when a deferred build isn't needed */
-    def this ( first: Parser[A], second: Parser[B] )
-        = this( first, (_) => second )
+    def this ( first: Parser[A], second: Parser[B], finish: (A,B) => R )
+        = this( first, (_) => second, finish )
 
     /** {@inheritDoc} */
     override def parse (
         bytes: Array[Byte], start: Int
-    ): Parser.Result[(A,B)] = firstResult match {
+    ): Parser.Result[R] = firstResult match {
         case None => {
             first.parse( bytes, start ).flatMap( (used, result) => {
                 firstResult = Some(result)
@@ -144,7 +145,9 @@ class ParseChain[A,B] (
             if ( secondParser.isEmpty )
                 secondParser = Some( second(firstResult.get) )
 
-            secondParser.get.parse( bytes, start ).map( firstResult.get -> _ )
+            secondParser.get
+                .parse( bytes, start )
+                .map( secondResult => finish(firstResult.get, secondResult) )
         }
     }
 
