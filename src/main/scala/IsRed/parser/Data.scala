@@ -3,7 +3,7 @@ package com.roundeights.isred
 /**
  * Parses an Int response
  */
-class IntParser extends ParserWrap[Reply] (
+class IntParser extends ParserWrap[IntReply] (
     new ParseUntil(
         Parser.ENDLINE,
         (bytes: Array[Byte]) => IntReply(
@@ -15,7 +15,7 @@ class IntParser extends ParserWrap[Reply] (
 /**
  * Parses a String (Bulk) reply
  */
-class StringParser extends Parser[Reply] {
+class StringParser extends Parser[MultiableReply] {
 
     /** Parses the length of the string */
     private val lengthParser = new ParseUntil(
@@ -24,12 +24,12 @@ class StringParser extends Parser[Reply] {
     )
 
     /** Parses the content of a string */
-    private var contentParser: Option[Parser[Reply]] = None
+    private var contentParser: Option[Parser[MultiableReply]] = None
 
     /** {@inheritDoc} */
     override def parse (
         bytes: Array[Byte], start: Int
-    ): Parser.Result[Reply] = contentParser match {
+    ): Parser.Result[MultiableReply] = contentParser match {
         case None => {
             lengthParser.parse(bytes, start).flatMap( (used, length) => {
                 if ( length == -1 ) {
