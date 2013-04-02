@@ -54,7 +54,7 @@ class StringParser extends Parser[MultiableReply] {
 /**
  * Parses a multi-bulk reply
  */
-class MultiParser extends Parser[MultiReply] {
+class MultiParser extends Parser[Reply] {
 
     import scala.collection.mutable.Buffer
 
@@ -82,13 +82,16 @@ class MultiParser extends Parser[MultiReply] {
     /** {@inheritDoc} */
     override def parse (
         bytes: Array[Byte], start: Int
-    ): Parser.Result[MultiReply] = argsOpt match {
+    ): Parser.Result[Reply] = argsOpt match {
         case None => {
             argsParser.parse( bytes, start ).flatMap( (used, args) => {
                 argsOpt = Some( args )
                 replyParser = buildReplyParser
                 parse( bytes, start + used ).addBytes( used )
             })
+        }
+        case Some(args) if args < 0 => {
+            Parser.Complete( 0, NullReply() )
         }
         case Some(args) if replies.length < args => {
             replyParser.parse( bytes, start ).flatMap( (used, reply) => {

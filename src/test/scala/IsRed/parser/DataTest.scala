@@ -81,6 +81,13 @@ class MultiParserTest extends Specification {
                 Parser.Complete( 3, MultiReply() )
         }
 
+        "Generate a Null reply when the arg length is < 1" in {
+            val parser = new MultiParser
+
+            parser.parse("*-1\r\n", 1) must_==
+                Parser.Complete( 4, NullReply() )
+        }
+
         "Generate a list of Bulk replies" in {
             val parser = new MultiParser
 
