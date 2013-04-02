@@ -23,7 +23,7 @@ sealed trait MultiableReply extends Reply
 /**
  * A aggregating response for returning multiple responses
  */
-case class MultiReply ( val items: Seq[MultiableReply] ) extends Reply
+case class MultiReply ( val items: MultiableReply* ) extends Reply
 
 /**
  * An integer response

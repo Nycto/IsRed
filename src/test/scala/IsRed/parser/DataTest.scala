@@ -70,4 +70,44 @@ class StringParserTest extends Specification {
 
 }
 
+class MultiParserTest extends Specification {
+
+    "A Multi parser" should {
+
+        "Generate an empty list when the arg length is 0" in {
+            val parser = new MultiParser
+
+            parser.parse("*0\r\n", 1) must_==
+                Parser.Complete( 3, MultiReply() )
+        }
+
+        "Generate a list of Bulk replies" in {
+            val parser = new MultiParser
+
+            parser.parse(
+                "*3\r\n" +
+                "$-1\r\n" +
+                "$3\r\narg\r\n" +
+                ":123\r\nextra",
+                1
+            ) must_== Parser.Complete( 23, MultiReply(
+                NullReply(), StringReply("arg"), IntReply(123)
+            ))
+        }
+
+        "Handle data spread across multiple chunks" in {
+            val parser = new MultiParser
+
+            parser.parse("*3\r", 1) must_== Parser.Incomplete(2)
+            parser.parse("\n$-1\r\n$") must_== Parser.Incomplete(7)
+            parser.parse("3\r\narg\r\n") must_== Parser.Incomplete(8)
+            parser.parse(":123\r\n") must_==
+                Parser.Complete( 6, MultiReply(
+                    NullReply(), StringReply("arg"), IntReply(123)
+                ))
+        }
+
+    }
+
+}
 

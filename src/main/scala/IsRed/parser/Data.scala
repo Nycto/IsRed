@@ -48,5 +48,59 @@ class StringParser extends Parser[MultiableReply] {
         }
         case Some(parser) => parser.parse( bytes, start )
     }
+
+}
+
+/**
+ * Parses a multi-bulk reply
+ */
+class MultiParser extends Parser[MultiReply] {
+
+    import scala.collection.mutable.Buffer
+
+    /** Parses the number of args to expect */
+    private val argsParser = new ParseUntil(
+        Parser.ENDLINE,
+        (bytes: Array[Byte]) => Integer.parseInt( Parser.asStr(bytes) )
+    )
+
+    /** The number of args */
+    private var argsOpt: Option[Int] = None
+
+    /** The list of replies */
+    private val replies = Buffer[MultiableReply]()
+
+    /** Parses an individual reply */
+    private var replyParser: Parser[MultiableReply] = null
+
+    /** Builds a new Multiable parser */
+    private def buildReplyParser: Parser[MultiableReply] = new ParseSwitch(
+        ':' -> new IntParser,
+        '$' -> new StringParser
+    )
+
+    /** {@inheritDoc} */
+    override def parse (
+        bytes: Array[Byte], start: Int
+    ): Parser.Result[MultiReply] = argsOpt match {
+        case None => {
+            argsParser.parse( bytes, start ).flatMap( (used, args) => {
+                argsOpt = Some( args )
+                replyParser = buildReplyParser
+                parse( bytes, start + used ).addBytes( used )
+            })
+        }
+        case Some(args) if replies.length < args => {
+            replyParser.parse( bytes, start ).flatMap( (used, reply) => {
+                replies += reply
+                replyParser = buildReplyParser
+                parse( bytes, start + used ).addBytes( used )
+            })
+        }
+        case Some(args) => {
+            Parser.Complete( 0, new MultiReply(replies.toList:_*) )
+        }
+    }
+
 }
 
