@@ -48,7 +48,7 @@ trait Strings extends Iface {
         = getInt( Cmd("DECRBY") ::: key :: decrement :: Cmd() )
 
     /** Get the value of a key */
-    def get[A] ( key: Key ): OptBulkResult[A]
+    def get[A : Convert] ( key: Key ): OptBulkResult[A]
         = getOptBulk[A]( Cmd("GET") ::: key :: Cmd() )
 
     /** Returns the bit value at offset in the string value stored at key */
@@ -56,11 +56,11 @@ trait Strings extends Iface {
         = getInt( Cmd("GETBIT") ::: key :: offset :: Cmd() )
 
     /** Get a substring of the string stored at a key */
-    def getRange[A] ( key: Key, start: Int, end: Int ): BulkResult[A]
+    def getRange[A : Convert] ( key: Key, start: Int, end: Int ): BulkResult[A]
         = getBulk[A]( Cmd("GETRANGE") ::: key :: start :: end :: Cmd() )
 
     /** Set the string value of a key and return its old value */
-    def getSet[A] ( key: Key, value: String ): OptBulkResult[A]
+    def getSet[A : Convert] ( key: Key, value: String ): OptBulkResult[A]
         = getOptBulk[A]( Cmd("GETSET") ::: key :: value :: Cmd() )
 
     /** Increment the integer value of a key by one */
@@ -76,7 +76,7 @@ trait Strings extends Iface {
         = getFloat( Cmd("INCRBYFLOAT") ::: key :: increment :: Cmd() )
 
     /** Get the values of all the given keys */
-    def mGet[A] ( key: Key, keys: Key* ): BulkMapResult[A]
+    def mGet[A : Convert] ( key: Key, keys: Key* ): BulkMapResult[A]
         = getBulkMap[A]( Cmd("MGET") ::: key :: keys :: Cmd() )
 
     /** Set multiple keys to multiple values */

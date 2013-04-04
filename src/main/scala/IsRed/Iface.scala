@@ -7,6 +7,10 @@ import scala.language.higherKinds
  */
 trait Iface {
 
+    /** The type definition for implicit result generation */
+    type Convert[A] = (Reply) => A
+
+
     /** A success or failure result */
     type AckResult
 
@@ -69,19 +73,19 @@ trait Iface {
 
 
     /** A string, int or float result */
-    def getBulk[A]( command: Command ): BulkResult[A]
+    def getBulk[A: Convert]( command: Command ): BulkResult[A]
 
     /** An optional bulk result */
-    def getOptBulk[A]( command: Command ): OptBulkResult[A]
+    def getOptBulk[A: Convert]( command: Command ): OptBulkResult[A]
 
     /** A set of bulk values */
-    def getBulkSet[A]( command: Command ): BulkSetResult[A]
+    def getBulkSet[A: Convert]( command: Command ): BulkSetResult[A]
 
     /** A sequence of bulk values */
-    def getBulkSeq[A]( command: Command ): BulkSeqResult[A]
+    def getBulkSeq[A: Convert]( command: Command ): BulkSeqResult[A]
 
     /** A map of bulk values */
-    def getBulkMap[A]( command: Command ): BulkMapResult[A]
+    def getBulkMap[A: Convert]( command: Command ): BulkMapResult[A]
 
 
     /**

@@ -14,7 +14,7 @@ trait Sets extends Iface {
         = getInt( Cmd("SCARD") ::: key :: Cmd() )
 
     /** Subtract multiple sets */
-    def sDiff[A] ( key: Key, keys: Key* ): BulkSetResult[A]
+    def sDiff[A : Convert] ( key: Key, keys: Key* ): BulkSetResult[A]
         = getBulkSet[A]( Cmd("SDIFF") ::: key :: keys :: Cmd() )
 
     /** Subtract multiple sets and store the resulting set in a key */
@@ -22,7 +22,7 @@ trait Sets extends Iface {
         = getInt( Cmd("SDIFFSTORE") ::: destination :: key :: keys :: Cmd() )
 
     /** Intersect multiple sets */
-    def sInter[A] ( key: Key, keys: Key* ): BulkSetResult[A]
+    def sInter[A : Convert] ( key: Key, keys: Key* ): BulkSetResult[A]
         = getBulkSet[A]( Cmd("SINTER") ::: key :: keys :: Cmd() )
 
     /** Intersect multiple sets and store the resulting set in a key */
@@ -34,7 +34,7 @@ trait Sets extends Iface {
         = getBool( Cmd("SISMEMBER") ::: key :: member :: Cmd() )
 
     /** Get all the members in a set */
-    def sMembers[A] ( key: Key ): BulkSetResult[A]
+    def sMembers[A : Convert] ( key: Key ): BulkSetResult[A]
         = getBulkSet[A]( Cmd("SMEMBERS") ::: key :: Cmd() )
 
     /** Move a member from one set to another */
@@ -42,15 +42,18 @@ trait Sets extends Iface {
         = getAck( Cmd("SMOVE") ::: source :: destination :: member :: Cmd() )
 
     /** Remove and return a random member from a set */
-    def sPop[A] ( key: Key ): OptBulkResult[A]
+    def sPop[A : Convert] ( key: Key ): OptBulkResult[A]
         = getOptBulk[A]( Cmd("SPOP") ::: key :: Cmd() )
 
     /** Get one or multiple random members from a set */
-    def sRandMember[A] ( key: Key, count: Option[Int] = None ): BulkSetResult[A]
-        = getBulkSet[A]( Cmd("SRANDMEMBER") ::: key :: count :: Cmd() )
+    def sRandMember[A : Convert] (
+        key: Key, count: Option[Int] = None
+    ): BulkSetResult[A] = {
+        getBulkSet[A]( Cmd("SRANDMEMBER") ::: key :: count :: Cmd() )
+    }
 
     /** Get one or multiple random members from a set */
-    def sRandMember[A] ( key: Key, count: Int ): BulkSetResult[A]
+    def sRandMember[A : Convert] ( key: Key, count: Int ): BulkSetResult[A]
         = sRandMember( key, Some(count) )
 
     /** Remove one or more members from a set */
@@ -58,7 +61,7 @@ trait Sets extends Iface {
         = getInt( Cmd("SREM") ::: key :: member :: members :: Cmd() )
 
     /** Add multiple sets */
-    def sUnion[A] ( key: Key, keys: Key* ): BulkSetResult[A]
+    def sUnion[A : Convert] ( key: Key, keys: Key* ): BulkSetResult[A]
         = getBulkSet[A]( Cmd("SUNION") ::: key :: keys :: Cmd() )
 
     /** Add multiple sets and store the resulting set in a key */

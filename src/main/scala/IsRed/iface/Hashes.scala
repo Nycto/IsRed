@@ -14,11 +14,11 @@ trait Hashes extends Iface {
         = getBool( Cmd("HEXISTS") ::: key :: field :: Cmd() )
 
     /** Get the value of a hash field */
-    def hGet[A] ( key: Key, field: Key ): OptBulkResult[A]
+    def hGet[A : Convert] ( key: Key, field: Key ): OptBulkResult[A]
         = getOptBulk[A]( Cmd("HGET") ::: key :: field :: Cmd() )
 
     /** Get all the fields and values in a hash */
-    def hGetAll[A] ( key: Key ): BulkMapResult[A]
+    def hGetAll[A : Convert] ( key: Key ): BulkMapResult[A]
         = getBulkMap[A]( Cmd("HGETALL") ::: key :: Cmd() )
 
     /** Increment the integer value of a hash field by the given number */
@@ -30,7 +30,7 @@ trait Hashes extends Iface {
         = getFloat( Cmd("HINCRBYFLOAT") ::: key :: field :: increment :: Cmd() )
 
     /** Get all the fields in a hash */
-    def hKeys[A] ( key: Key ): BulkSetResult[A]
+    def hKeys[A : Convert] ( key: Key ): BulkSetResult[A]
         = getBulkSet[A]( Cmd("HKEYS") ::: key :: Cmd() )
 
     /** Get the number of fields in a hash */
@@ -38,8 +38,11 @@ trait Hashes extends Iface {
         = getInt( Cmd("HLEN") ::: key :: Cmd() )
 
     /** Get the values of all the given hash fields */
-    def hMGet[A] ( key: Key, field: Key, fields: Key* ): BulkMapResult[A]
-        = getBulkMap[A]( Cmd("HMGET") ::: key :: field :: fields :: Cmd() )
+    def hMGet[A : Convert] (
+        key: Key, field: Key, fields: Key*
+    ): BulkMapResult[A] = {
+        getBulkMap[A]( Cmd("HMGET") ::: key :: field :: fields :: Cmd() )
+    }
 
     /** Set multiple hash fields to multiple values */
     def hMSet (
@@ -56,7 +59,7 @@ trait Hashes extends Iface {
         = getAck( Cmd("HSETNX") ::: key :: field :: value :: Cmd() )
 
     /** Get all the values in a hash */
-    def hVals[A] ( key: Key ): BulkSeqResult[A]
+    def hVals[A : Convert] ( key: Key ): BulkSeqResult[A]
         = getBulkSeq[A]( Cmd("HVALS") ::: key :: Cmd() )
 
 }
