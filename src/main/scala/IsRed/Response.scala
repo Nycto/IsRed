@@ -17,6 +17,9 @@ sealed trait Reply {
     /** Returns this value as a Boolean */
     def asBool: Boolean = throw UnexpectedReply("Boolean", this)
 
+    /** Returns this value as a String */
+    def asString: String = throw UnexpectedReply("String", this)
+
     /** Returns this value as as sequence */
     def asSeq: Seq[MultiableReply] = throw UnexpectedReply("Sequence", this)
 }
@@ -41,7 +44,7 @@ case class FailureReply (
 ) extends Reply {
 
     /** Throws the error this failure reply represents */
-    private def throwErr: Nothing = throw ReplyError(code, message)
+    def throwErr: Nothing = throw ReplyError(code, message)
 
     /** {@inheritDoc} */
     override def asAck: Boolean = throwErr
@@ -54,6 +57,9 @@ case class FailureReply (
 
     /** {@inheritDoc} */
     override def asBool: Boolean = throwErr
+
+    /** {@inheritDoc} */
+    override def asString: String = throwErr
 
     /** {@inheritDoc} */
     override def asSeq: Seq[MultiableReply] = throwErr
@@ -79,6 +85,9 @@ case class IntReply ( override val asInt: Int ) extends MultiableReply {
 
     /** {@inheritDoc} */
     override def asBool: Boolean = (asInt != 0)
+
+    /** {@inheritDoc} */
+    override def asString: String = asInt.toString
 }
 
 /**
@@ -91,12 +100,17 @@ case class NullReply () extends MultiableReply {
 
     /** {@inheritDoc} */
     override def asDouble: Double = 0
+
+    /** {@inheritDoc} */
+    override def asString: String = ""
 }
 
 /**
  * String bulk response
  */
-case class StringReply ( val asString: String ) extends MultiableReply {
+case class StringReply (
+    override val asString: String
+) extends MultiableReply {
 
     /** {@inheritDoc} */
     override def asInt: Int = asString.toInt

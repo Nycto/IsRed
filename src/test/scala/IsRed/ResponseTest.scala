@@ -45,6 +45,15 @@ class ResponseTest extends Specification {
             MultiReply( IntReply(1) ).asBool must throwA[UnexpectedReply]
         }
 
+        "produce a String" in {
+            SuccessReply("OK").asString must throwA[UnexpectedReply]
+            FailureReply("Err", "Oops").asString must throwA[ReplyError]
+            IntReply(123).asString must_== "123"
+            NullReply().asString must_== ""
+            StringReply("Test").asString must_== "Test"
+            MultiReply( IntReply(1) ).asString must throwA[UnexpectedReply]
+        }
+
         "produce a Sequence" in {
             SuccessReply("OK").asSeq must throwA[UnexpectedReply]
             FailureReply("Err", "Oops").asSeq must throwA[ReplyError]
