@@ -20,3 +20,10 @@ case class UnexpectedReply (
     )
 )
 
+/**
+ * Thrown when a blpop or brpop timeout
+ */
+case class PopTimeout ( val command: Command ) extends Exception(
+    "List pop timed out while requesting %s".format( command )
+)
+
