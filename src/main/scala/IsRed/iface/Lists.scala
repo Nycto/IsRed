@@ -18,15 +18,15 @@ trait Lists extends Iface {
      * Remove and get the first element in a list, or block until one
      * is available.
      */
-    def bLPop ( timeout: Int, key: Key, keys: Key* ): PopResult
-        = getPop( Cmd("BLPOP") ::: timeout :: key :: keys :: Cmd() )
+    def bLPop[A : Convert] ( timeout: Int, key: Key, keys: Key* ): PopResult[A]
+        = getPop[A]( Cmd("BLPOP") ::: timeout :: key :: keys :: Cmd() )
 
     /**
      * Remove and get the last element in a list, or block until one
      * is available
      */
-    def bRPop ( timeout: Int, key: Key, keys: Key* ): PopResult
-        = getPop( Cmd("BRPOP") ::: timeout :: key :: keys :: Cmd() )
+    def bRPop[A : Convert] ( timeout: Int, key: Key, keys: Key* ): PopResult[A]
+        = getPop[A]( Cmd("BRPOP") ::: timeout :: key :: keys :: Cmd() )
 
     /**
      * Pop a value from a list, push it to another list and return it; or

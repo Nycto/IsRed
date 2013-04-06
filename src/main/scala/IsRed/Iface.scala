@@ -46,7 +46,7 @@ trait Iface {
      * element is the list that was popped from, and the second element is
      * the value that was popped.
      */
-    type PopResult
+    type PopResult[A]
 
     /** A list of keys */
     type KeyListResult
@@ -93,7 +93,7 @@ trait Iface {
      * element is the list that was popped from, and the second element is
      * the value that was popped.
      */
-    def getPop( command: Command ): PopResult
+    def getPop[A : Convert]( command: Command ): PopResult[A]
 
     /** A list of keys */
     def getKeyList( command: Command ): KeyListResult
