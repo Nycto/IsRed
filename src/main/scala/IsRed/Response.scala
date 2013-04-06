@@ -1,5 +1,28 @@
 package com.roundeights.isred
 
+import scala.language.implicitConversions
+
+/** Reply companion */
+object Reply {
+
+    /** Convert to an Boolean */
+    implicit def reply2bool ( reply: Reply ) = reply.asBool
+
+    /** Convert to an Int */
+    implicit def reply2int ( reply: Reply ) = reply.asInt
+
+    /** Convert to a Double */
+    implicit def reply2double ( reply: Reply ) = reply.asDouble
+
+    /** Convert to a float */
+    implicit def reply2float ( reply: Reply ) = reply.asDouble.toFloat
+
+    /** Convert to a String */
+    implicit def reply2string ( reply: Reply ) = reply.asString
+
+}
+
+
 /**
  * A Raw response from Redis
  */
