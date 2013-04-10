@@ -63,34 +63,50 @@ protected class ReplyDecoder  extends SimpleChannelUpstreamHandler {
 }
 
 /**
- * An interface for sending commands and reading replies
+ * A pool of Netty Channels
  */
-class Engine ( val host: String, val port: Int = 6379 ) {
+protected class ChannelPool ( host: String, port: Int, maxConnect: Int ) {
 
     /** The netty resources */
     private val netty = Netty()
 
-    /** Returns a netty channel */
-    private def getChannel: Future[Channel] = {
-        netty.open(host, port).tcpNoDelay.keepAlive
+    /** The base instance to use for building new channels */
+    private val builder = netty
+            .open(host, port)
+            .tcpNoDelay.keepAlive
             .add( "encoder" -> new CommandEncoder )
             .add( "decoder" -> new ChannelUpstreamHandler {
                 override def handleUpstream(
                     context: ChannelHandlerContext, event: ChannelEvent
                 ): Unit = context.sendUpstream( event )
             })
-            .connect
-    }
 
     /** Shuts down all the resources associated with this instace */
     def shutdown (implicit context: ExecutionContext): Unit = netty.shutdown
+
+    /** Returns a netty channel */
+    def getChannel: Future[Channel] = {
+        builder.connect
+    }
+}
+
+/**
+ * An interface for sending commands and reading replies
+ */
+class Engine ( val host: String, val port: Int, val maxConnect: Int ) {
+
+    /** The pool of channels */
+    private val pool = new ChannelPool( host, port, maxConnect )
+
+    /** Shuts down all the resources associated with this instace */
+    def shutdown (implicit context: ExecutionContext): Unit = pool.shutdown
 
     /** Sends the given command over the wire */
     def send
         ( command: Command )
         (implicit context: ExecutionContext)
     : Future[Reply] = {
-        getChannel.flatMap { chan => {
+        pool.getChannel.flatMap { chan => {
             val parser = new ReplyDecoder
             val pipeline = chan.getPipeline
 
