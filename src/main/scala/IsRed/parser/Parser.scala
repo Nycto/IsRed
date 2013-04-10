@@ -23,6 +23,9 @@ object Parser {
         /** The number of bytes consumed from the processed byte array */
         def consumed: Int
 
+        /** Executes a callback if this parser is Complete */
+        def foreach[A]( callback: (T) => Unit ): Unit
+
         /** Generates a new Result from this result */
         def map[A]( callback: (T) => A ): Result[A]
 
@@ -38,6 +41,9 @@ object Parser {
         override val consumed: Int,
         override val get: T
     ) extends Result[T] {
+
+        /** {@inheritDoc} */
+        override def foreach[A]( callback: (T) => Unit ): Unit = callback(get)
 
         /** {@inheritDoc} */
         override def map[A]( callback: (T) => A ): Result[A]
@@ -59,6 +65,9 @@ object Parser {
 
         /** {@inheritDoc} */
         override def get: T = throw new NoSuchElementException
+
+        /** {@inheritDoc} */
+        override def foreach[A]( callback: (T) => Unit ): Unit = ()
 
         /** {@inheritDoc} */
         override def map[A]( callback: (T) => A ): Result[A]
