@@ -1,6 +1,6 @@
 package com.roundeights.isred
 
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.{AtomicInteger, AtomicBoolean}
 import scala.concurrent.{Future, Promise, ExecutionContext}
 import scala.annotation.tailrec
 
@@ -37,14 +37,19 @@ class Pool[A] (
     /** A value borrowed from the pool */
     class Value private[Pool] ( val value: A ) {
 
+        /** Whether this value has been released or retired */
+        private val returned = new AtomicBoolean(false)
+
         /** Releases this value back to the pool */
-        def release: Unit = {
+        def release: Unit = if ( returned.compareAndSet(false, true) ) {
             available.getAndIncrement
             queue.enqueue( value )
         }
 
         /** Retires this value from service */
-        def retire: Unit = created.getAndDecrement
+        def retire: Unit = if ( returned.compareAndSet(false, true) ) {
+            created.getAndDecrement
+        }
     }
 
     /** Builds a new pool value */
