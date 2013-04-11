@@ -9,17 +9,16 @@ object Pool {
 
     /** Builds a new pool */
     def apply[A]
-        ( max: Int, builder: () => A )
+        ( max: Int, builder: () => Future[A] )
         ( implicit context: ExecutionContext )
     : Pool[A]
         = new Pool[A]( max, builder )( context )
-
 }
 
 /** A pool of values */
 class Pool[A] (
     private val max: Int,
-    private val builder: () => A
+    private val builder: () => Future[A]
 )(
     implicit context: ExecutionContext
 ) {
@@ -43,8 +42,29 @@ class Pool[A] (
             available.getAndIncrement
             queue.enqueue( value )
         }
-
     }
+
+    /** Builds a new pool value */
+    private def buildInto( into: Promise[Value] ): Unit = {
+        try {
+            val built = builder()
+            into.completeWith( built.map {
+                value => new Value( value )
+            })
+            built.onFailure {
+                case _ => created.getAndDecrement
+            }
+        } catch {
+            case err: Throwable => {
+                created.getAndDecrement
+                into.failure( err )
+            }
+        }
+    }
+
+    /** Executes a block asynchronously */
+    private def async ( block: => Unit )
+        = context.execute( new Runnable { override def run = block } )
 
     /** Borrows a value from the pool */
     @tailrec final def borrow: Future[Value] = {
@@ -60,16 +80,7 @@ class Pool[A] (
         else {
             if ( created.compareAndSet(creat, creat + 1) ) {
                 val promise = Promise[Value]()
-                context.execute( new Runnable { override def run = {
-                    try {
-                        promise.success( new Value( builder() ) )
-                    } catch {
-                        case err: Throwable => {
-                            created.getAndDecrement
-                            promise.failure( err )
-                        }
-                    }
-                }})
+                async { buildInto( promise ) }
                 promise.future
             }
             else {

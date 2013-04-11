@@ -22,7 +22,9 @@ class PoolTest extends Specification {
 
         "recycle values once a previous block is done using them" in {
             val counter = new AtomicInteger(0)
-            val pool = Pool(1, () => counter.incrementAndGet )
+            val pool = Pool(1,
+                () => Future.successful(counter.incrementAndGet)
+            )
 
             await( pool( value => {
                 value must_== 1
@@ -37,7 +39,9 @@ class PoolTest extends Specification {
 
         "Build up to the max when values are borrowed" in {
             val counter = new AtomicInteger(0)
-            val pool = Pool(2, () => counter.incrementAndGet )
+            val pool = Pool(2,
+                () => Future.successful(counter.incrementAndGet)
+            )
 
             val one = await( pool.borrow )
             one.value must_== 1
@@ -61,7 +65,21 @@ class PoolTest extends Specification {
             val pool = Pool(2, () => {
                 val value = counter.incrementAndGet
                 if ( value == 2 ) throw error
-                else value
+                else Future.successful(value)
+            })
+
+            await( pool.borrow ).value must_== 1
+            await( pool( value => failure ).failed ) must_== error
+            await( pool.borrow ).value must_== 3
+        }
+
+        "Attempt to build more values when the built future fails" in {
+            val error = new Exception("Expected error")
+            val counter = new AtomicInteger(0)
+            val pool = Pool(2, () => {
+                val value = counter.incrementAndGet
+                if ( value == 2 ) Future.failed(error)
+                else Future.successful(value)
             })
 
             await( pool.borrow ).value must_== 1
@@ -71,7 +89,9 @@ class PoolTest extends Specification {
 
         "Release a value when a callback throws" in {
             val counter = new AtomicInteger(0)
-            val pool = Pool(1, () => counter.incrementAndGet )
+            val pool = Pool(1,
+                () => Future.successful(counter.incrementAndGet)
+            )
 
             val error = new Exception("Expected error")
             await( pool(value => {
