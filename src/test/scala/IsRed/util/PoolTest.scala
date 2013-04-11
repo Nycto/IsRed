@@ -20,23 +20,6 @@ class PoolTest extends Specification {
 
     "A Pool" should {
 
-        "Recycle values once a previous block is done using them" in {
-            val counter = new AtomicInteger(0)
-            val pool = Pool(1,
-                () => Future.successful(counter.incrementAndGet)
-            )
-
-            await( pool( value => {
-                value must_== 1
-                "One"
-            })) must_== "One"
-
-            await( pool( value => {
-                value must_== 1
-                "Two"
-            })) must_== "Two"
-        }
-
         "Build up to the max when values are borrowed" in {
             val counter = new AtomicInteger(0)
             val pool = Pool(2,
@@ -69,7 +52,7 @@ class PoolTest extends Specification {
             })
 
             await( pool.borrow ).value must_== 1
-            await( pool( value => failure ).failed ) must_== error
+            await( pool.map( value => failure ).failed ) must_== error
             await( pool.borrow ).value must_== 3
         }
 
@@ -83,26 +66,8 @@ class PoolTest extends Specification {
             })
 
             await( pool.borrow ).value must_== 1
-            await( pool( value => failure ).failed ) must_== error
+            await( pool.map( value => failure ).failed ) must_== error
             await( pool.borrow ).value must_== 3
-        }
-
-        "Retire a value when a callback throws" in {
-            val counter = new AtomicInteger(0)
-            val pool = Pool(1,
-                () => Future.successful(counter.incrementAndGet)
-            )
-
-            val error = new Exception("Expected error")
-            await( pool(value => {
-                value must_== 1
-                throw error
-            }).failed ) must_== error
-
-            await( pool( value => {
-                value must_== 2
-                "Result"
-            })) must_== "Result"
         }
 
         "Build more values when a value is retired" in {
@@ -117,7 +82,100 @@ class PoolTest extends Specification {
 
             await( pool.borrow ).value must_== 2
         }
+    }
 
+    "Mapping over a pool" should {
+
+        "Release values once a block is done using them" in {
+            val counter = new AtomicInteger(0)
+            val pool = Pool(1,
+                () => Future.successful(counter.incrementAndGet)
+            )
+
+            await( pool.map( value => {
+                value must_== 1
+                "One"
+            })) must_== "One"
+
+            await( pool.map( value => {
+                value must_== 1
+                "Two"
+            })) must_== "Two"
+        }
+
+        "Retire a value when a block throws" in {
+            val counter = new AtomicInteger(0)
+            val pool = Pool(1,
+                () => Future.successful(counter.incrementAndGet)
+            )
+
+            val error = new Exception("Expected error")
+            await( pool.map(value => {
+                value must_== 1
+                throw error
+            }).failed ) must_== error
+
+            await( pool.map( value => {
+                value must_== 2
+                "Result"
+            })) must_== "Result"
+        }
+    }
+
+    "FlatMapping over a pool" should {
+
+        "Release values once the inner future is done" in {
+            val counter = new AtomicInteger(0)
+            val pool = Pool(1,
+                () => Future.successful(counter.incrementAndGet)
+            )
+
+            await( pool.flatMap( value => {
+                value must_== 1
+                Future.successful("One")
+            })) must_== "One"
+
+            await( pool.flatMap( value => {
+                value must_== 1
+                Future.successful("Two")
+            })) must_== "Two"
+        }
+
+        "Retire a value when a block throws" in {
+            val counter = new AtomicInteger(0)
+            val pool = Pool(1,
+                () => Future.successful(counter.incrementAndGet)
+            )
+
+            val error = new Exception("Expected error")
+            await( pool.flatMap(value => {
+                value must_== 1
+                throw error
+            }).failed ) must_== error
+
+            await( pool.flatMap( value => {
+                value must_== 2
+                Future.successful("Result")
+            })) must_== "Result"
+        }
+
+        "Retire a value when then inner future fails" in {
+            val counter = new AtomicInteger(0)
+            val pool = Pool(1,
+                () => Future.successful(counter.incrementAndGet)
+            )
+
+            val error = new Exception("Expected error")
+            await( pool.flatMap(value => {
+                value must_== 1
+                Future.failed( error )
+            }).failed ) must_== error
+
+            await( pool.flatMap( value => {
+                value must_== 2
+                Future.successful("Result")
+            })) must_== "Result"
+        }
     }
 
 }

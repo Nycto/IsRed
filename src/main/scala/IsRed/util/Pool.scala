@@ -50,6 +50,18 @@ class Pool[A] (
         def retire: Unit = if ( returned.compareAndSet(false, true) ) {
             created.getAndDecrement
         }
+
+        /** Executes a thunk and retires this value if it throws */
+        def attempt[B]( thunk: => B ): B = {
+            try {
+                thunk
+            } catch {
+                case err: Throwable => {
+                    retire
+                    throw err
+                }
+            }
+        }
     }
 
     /** Builds a new pool value */
@@ -101,18 +113,23 @@ class Pool[A] (
      * Executes a callback with a value from the queue and releases
      * the resource once its done
      */
-    def apply[B] ( callback: A => B ): Future[B] = {
-        borrow.map { value => {
-            try {
-                val result = callback( value.value )
-                value.release
-                result
-            } catch {
-                case err: Throwable => {
-                    value.retire
-                    throw err
-                }
-            }
+    def map[B] ( callback: A => B ): Future[B] = {
+        borrow.map { value => value.attempt {
+            val result = callback( value.value )
+            value.release
+            result
+        }}
+    }
+
+    /**
+     * Executes a value from the queue that returns a future
+     */
+    def flatMap[B] ( callback: A => Future[B] ): Future[B] = {
+        borrow.flatMap { value => value.attempt {
+            val result = callback( value.value )
+            result.onSuccess { case _ => value.release }
+            result.onFailure { case _ => value.retire }
+            result
         }}
     }
 
