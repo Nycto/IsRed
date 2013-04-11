@@ -20,7 +20,7 @@ class PoolTest extends Specification {
 
     "A Pool" should {
 
-        "recycle values once a previous block is done using them" in {
+        "Recycle values once a previous block is done using them" in {
             val counter = new AtomicInteger(0)
             val pool = Pool(1,
                 () => Future.successful(counter.incrementAndGet)
@@ -87,7 +87,7 @@ class PoolTest extends Specification {
             await( pool.borrow ).value must_== 3
         }
 
-        "Release a value when a callback throws" in {
+        "Retire a value when a callback throws" in {
             val counter = new AtomicInteger(0)
             val pool = Pool(1,
                 () => Future.successful(counter.incrementAndGet)
@@ -100,9 +100,22 @@ class PoolTest extends Specification {
             }).failed ) must_== error
 
             await( pool( value => {
-                value must_== 1
+                value must_== 2
                 "Result"
             })) must_== "Result"
+        }
+
+        "Build more values when a value is retired" in {
+            val counter = new AtomicInteger(0)
+            val pool = Pool(1,
+                () => Future.successful(counter.incrementAndGet)
+            )
+
+            val first = await( pool.borrow )
+            first.value must_== 1
+            first.retire
+
+            await( pool.borrow ).value must_== 2
         }
 
     }

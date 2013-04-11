@@ -42,6 +42,9 @@ class Pool[A] (
             available.getAndIncrement
             queue.enqueue( value )
         }
+
+        /** Retires this value from service */
+        def retire: Unit = created.getAndDecrement
     }
 
     /** Builds a new pool value */
@@ -96,9 +99,14 @@ class Pool[A] (
     def apply[B] ( callback: A => B ): Future[B] = {
         borrow.map { value => {
             try {
-                callback( value.value )
-            } finally {
+                val result = callback( value.value )
                 value.release
+                result
+            } catch {
+                case err: Throwable => {
+                    value.retire
+                    throw err
+                }
             }
         }}
     }
