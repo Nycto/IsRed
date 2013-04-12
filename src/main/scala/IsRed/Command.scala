@@ -3,7 +3,7 @@ package com.roundeights.isred
 /**
  * An interface for building commands
  */
-object Cmd {
+private [isred] object Cmd {
 
     /** Collects a list of args and generates a command */
     class Args ( private val args: List[String] ) {
@@ -37,7 +37,9 @@ object Cmd {
 /**
  * A Redis command
  */
-case class Command ( val command: String, val args: Seq[String] = Nil ) {
+private[isred] case class Command (
+    val command: String, val args: Seq[String] = Nil
+) {
 
     /** Invokes a callback for each chunk of bytes in this command */
     def eachChunk ( callback: (Array[Byte]) => Unit ): Unit = {

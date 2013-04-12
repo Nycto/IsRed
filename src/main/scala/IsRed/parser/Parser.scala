@@ -1,21 +1,21 @@
 package com.roundeights.isred
 
-/** Parser Companion... */
-object Parser {
-
-    /** Thrown when an unexpected byte is encountered */
-    case class UnexpectedByte(
-        byte: Byte, allowed: Iterable[Byte]
-    ) extends Exception(
-        "Unexpected byte encountered: %d; Allowed bytes: %s".format(
-            byte.toInt,
-            allowed.map( _.toInt ).mkString(", ")
-        )
+/** Thrown when an unexpected byte is encountered */
+case class UnexpectedByte(
+    byte: Byte, allowed: Iterable[Byte]
+) extends Exception(
+    "Unexpected byte encountered: %d; Allowed bytes: %s".format(
+        byte.toInt,
+        allowed.map( _.toInt ).mkString(", ")
     )
+)
+
+/** Parser Companion... */
+private[isred] object Parser {
 
 
     /** The result of parsing a chunk of bytes */
-    sealed trait Result[+T] {
+    private[isred] sealed trait Result[+T] {
 
         /** Returns the value, if it exists, or throws */
         def get: T
@@ -37,7 +37,7 @@ object Parser {
     }
 
     /** Marks that a fully formed result is available */
-    case class Complete[+T] (
+    private[isred] case class Complete[+T] (
         override val consumed: Int,
         override val get: T
     ) extends Result[T] {
@@ -59,7 +59,7 @@ object Parser {
     }
 
     /** Marks that more data is needed before a result is available */
-    case class Incomplete[+T] (
+    private[isred] case class Incomplete[+T] (
         override val consumed: Int
     ) extends Result[T] {
 
@@ -116,7 +116,7 @@ object Parser {
  * Parsers are mutable and single shot. You will need to instantiate a new
  * instance every time you want to parse a new response.
  */
-trait Parser[+T] {
+private[isred] trait Parser[+T] {
 
     /** Parses the given byte array */
     def parse ( bytes: Array[Byte], start: Int ): Parser.Result[T]

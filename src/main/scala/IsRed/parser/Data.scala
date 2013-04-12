@@ -3,7 +3,7 @@ package com.roundeights.isred
 /**
  * Parses an Int response
  */
-class IntParser extends ParserWrap[IntReply] (
+private[isred] class IntParser extends ParserWrap[IntReply] (
     new ParseUntil(
         Parser.ENDLINE,
         (bytes: Array[Byte]) => IntReply(
@@ -15,7 +15,7 @@ class IntParser extends ParserWrap[IntReply] (
 /**
  * Parses a String (Bulk) reply
  */
-class StringParser extends Parser[MultiableReply] {
+private[isred] class StringParser extends Parser[MultiableReply] {
 
     /** Parses the length of the string */
     private val lengthParser = new ParseUntil(
@@ -54,7 +54,7 @@ class StringParser extends Parser[MultiableReply] {
 /**
  * Parses a multi-bulk reply
  */
-class MultiParser extends Parser[Reply] {
+private[isred] class MultiParser extends Parser[Reply] {
 
     import scala.collection.mutable.Buffer
 

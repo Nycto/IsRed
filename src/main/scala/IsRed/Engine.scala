@@ -8,7 +8,7 @@ import org.jboss.netty.buffer._
 /**
  * Encodes a command as a ChannelBuffer
  */
-protected class CommandEncoder extends ChannelDownstreamHandler {
+private[isred] class CommandEncoder extends ChannelDownstreamHandler {
 
     /** {@inheritDoc} */
     override def handleDownstream (
@@ -36,7 +36,7 @@ protected class CommandEncoder extends ChannelDownstreamHandler {
 /**
  * Decods a reply from Redis
  */
-protected class ReplyDecoder  extends SimpleChannelUpstreamHandler {
+private[isred] class ReplyDecoder  extends SimpleChannelUpstreamHandler {
 
     /** The internal result of this decoder instance */
     private val result = Promise[Reply]()
@@ -65,7 +65,7 @@ protected class ReplyDecoder  extends SimpleChannelUpstreamHandler {
 /**
  * A pool of Netty Channels
  */
-protected class ChannelPool
+private[isred] class ChannelPool
     ( host: String, port: Int, maxConnect: Int )
     ( implicit context: ExecutionContext )
 {
@@ -105,7 +105,7 @@ protected class ChannelPool
 /**
  * An interface for sending commands and reading replies
  */
-class Engine
+private[isred] class Engine
     ( val host: String, val port: Int, val maxConnect: Int )
     ( implicit context: ExecutionContext )
 {

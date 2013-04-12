@@ -306,7 +306,7 @@ class ParseSwitchTest extends Specification {
                 '8' -> new ParseLength( 8, asString(_) )
             )
 
-            parser.parse("!12345") must throwA[Parser.UnexpectedByte]
+            parser.parse("!12345") must throwA[UnexpectedByte]
         }
 
     }

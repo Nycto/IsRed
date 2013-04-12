@@ -7,7 +7,7 @@ import scala.annotation.tailrec
 /**
  * Parses byte arrays until a delimiter is reached
  */
-class ParseUntil[+T] (
+private[isred] class ParseUntil[+T] (
     private val delim: Array[Byte],
     private val onComplete: (Array[Byte]) => T
 ) extends Parser[T] {
@@ -70,7 +70,7 @@ class ParseUntil[+T] (
 /**
  * Parses a specific number of bytes
  */
-class ParseLength[+T] (
+private[isred] class ParseLength[+T] (
     private val total: Int,
     private val onComplete: (Array[Byte]) => T
 ) extends Parser[T] {
@@ -111,7 +111,7 @@ class ParseLength[+T] (
 /**
  * Parses with one parser until it completes, then moves on to another parser.
  */
-class ParseChain[A,B,R] (
+private[isred] class ParseChain[A,B,R] (
     private val first: Parser[A],
     private val second: (A) => Parser[B],
     private val finish: (A,B) => R
@@ -156,7 +156,9 @@ class ParseChain[A,B,R] (
 /**
  * A parser that wraps another parser
  */
-class ParserWrap[T] ( private val parser: Parser[T] ) extends Parser[T] {
+private[isred] class ParserWrap[T] (
+    private val parser: Parser[T]
+) extends Parser[T] {
 
     /** {@inheritDoc} */
     override def parse ( bytes: Array[Byte], start: Int ): Parser.Result[T]
@@ -167,7 +169,7 @@ class ParserWrap[T] ( private val parser: Parser[T] ) extends Parser[T] {
 /**
  * A parser that chooses another parser based on the first byte processed
  */
-class ParseSwitch[T] (
+private[isred] class ParseSwitch[T] (
     private val parsers: Map[Byte, Parser[T]]
 ) extends Parser[T] {
 
@@ -190,7 +192,7 @@ class ParseSwitch[T] (
             case None => {
                 firstByte.parse( bytes, start ).flatMap( (used, byte) => {
                     parser = Some( parsers.get(byte).getOrElse(
-                        throw new Parser.UnexpectedByte(byte, parsers.keys)
+                        throw new UnexpectedByte(byte, parsers.keys)
                     ))
 
                     parse( bytes, start + used ).addBytes( used )

@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 import java.util.concurrent.atomic.AtomicReference
 
 /** FutureQueue Companion */
-object FutureQueue {
+private[isred] object FutureQueue {
     /** Builds a new future queue */
     def apply[A](): FutureQueue[A] = new FutureQueue[A]()
 }
@@ -17,7 +17,7 @@ object FutureQueue {
  * Based on the implementation found here:
  * https://groups.google.com/forum/#!msg/scala-user/lyoAdNs3E1o/zenchh75NSkJ
  */
-class FutureQueue[A] {
+private[isred] class FutureQueue[A] {
 
     /**
      * There are three states this queue can be in

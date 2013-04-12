@@ -10,13 +10,13 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory
 import org.jboss.netty.channel._
 
 
+/** Thrown when a Channel Future is cancelled */
+class RequestCancelled extends Exception
+
 /**
  * A wrapper for building Netty channels
  */
-object Netty {
-
-    /** Thrown when a Channel Future is cancelled */
-    class Cancelled extends Exception
+private[isred] object Netty {
 
     /** Converts a channel future to a scala future */
     def futureify ( future: ChannelFuture ): Future[Channel] = {
@@ -24,7 +24,7 @@ object Netty {
         future.addListener(new ChannelFutureListener() {
             override def operationComplete( f: ChannelFuture ): Unit = {
                 if ( f.isCancelled ) {
-                    promise.failure( new Cancelled )
+                    promise.failure( new RequestCancelled )
                 } else if ( f.isSuccess ) {
                     promise.success( f.getChannel )
                 } else {
@@ -46,7 +46,7 @@ object Netty {
 /**
  * A Netty connection builder.
  */
-class Netty ( channelFactory: ChannelFactory ) {
+private[isred] class Netty ( channelFactory: ChannelFactory ) {
 
     /** The thread pools to use for netty clients */
     def this () = this( {

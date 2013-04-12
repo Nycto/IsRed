@@ -5,7 +5,7 @@ import scala.concurrent.{Future, Promise, ExecutionContext}
 import scala.annotation.tailrec
 
 /** Companion */
-object Pool {
+private[isred] object Pool {
 
     /** Builds a new pool */
     def apply[A]
@@ -23,7 +23,7 @@ object Pool {
 }
 
 /** A pool of values */
-class Pool[A] (
+private[isred] class Pool[A] (
     private val max: Int,
     private val builder: () => Future[A],
     private val onRetire: (A) => Unit
