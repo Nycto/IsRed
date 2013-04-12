@@ -82,6 +82,20 @@ class PoolTest extends Specification {
 
             await( pool.borrow ).value must_== 2
         }
+
+        "Call onRetired when a value is retired" in {
+            val onRetireCallCount = new AtomicInteger(0)
+            val pool = Pool(1, () => Future.successful(1),
+                (value: Int) => {
+                    value must_== 1
+                    onRetireCallCount.incrementAndGet
+                }
+            )
+
+            await( pool.borrow ).retire
+
+            onRetireCallCount.get must_== 1
+        }
     }
 
     "Mapping over a pool" should {

@@ -9,16 +9,24 @@ object Pool {
 
     /** Builds a new pool */
     def apply[A]
+        ( max: Int, builder: () => Future[A], onRetire: (A) => Unit )
+        ( implicit context: ExecutionContext )
+    : Pool[A]
+        = new Pool[A]( max, builder, onRetire )( context )
+
+    /** Builds a new pool */
+    def apply[A]
         ( max: Int, builder: () => Future[A] )
         ( implicit context: ExecutionContext )
     : Pool[A]
-        = new Pool[A]( max, builder )( context )
+        = new Pool[A]( max, builder, (value) => () )( context )
 }
 
 /** A pool of values */
 class Pool[A] (
     private val max: Int,
-    private val builder: () => Future[A]
+    private val builder: () => Future[A],
+    private val onRetire: (A) => Unit
 )(
     implicit context: ExecutionContext
 ) {
@@ -33,6 +41,10 @@ class Pool[A] (
 
     /** The list of values */
     private val queue = FutureQueue[A]()
+
+    /** Executes a block asynchronously */
+    private def async ( block: => Unit )
+        = context.execute( new Runnable { override def run = block } )
 
     /** A value borrowed from the pool */
     class Value private[Pool] ( val value: A ) {
@@ -49,6 +61,7 @@ class Pool[A] (
         /** Retires this value from service */
         def retire: Unit = if ( returned.compareAndSet(false, true) ) {
             created.getAndDecrement
+            async { onRetire(value) }
         }
 
         /** Executes a thunk and retires this value if it throws */
@@ -81,10 +94,6 @@ class Pool[A] (
             }
         }
     }
-
-    /** Executes a block asynchronously */
-    private def async ( block: => Unit )
-        = context.execute( new Runnable { override def run = block } )
 
     /** Borrows a value from the pool */
     @tailrec final def borrow: Future[Value] = {
