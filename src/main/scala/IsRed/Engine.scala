@@ -65,7 +65,10 @@ protected class ReplyDecoder  extends SimpleChannelUpstreamHandler {
 /**
  * A pool of Netty Channels
  */
-protected class ChannelPool ( host: String, port: Int, maxConnect: Int ) {
+protected class ChannelPool
+    ( host: String, port: Int, maxConnect: Int )
+    ( implicit context: ExecutionContext )
+{
 
     /** The netty resources */
     private val netty = Netty()
@@ -81,32 +84,41 @@ protected class ChannelPool ( host: String, port: Int, maxConnect: Int ) {
                 ): Unit = context.sendUpstream( event )
             })
 
+    /** The pool of open connections */
+    private val pool = Pool[Channel](
+        max = maxConnect,
+        builder = () => builder.connect,
+        onRetire = (channel: Channel) => { channel.close; () }
+    )
+
     /** Shuts down all the resources associated with this instace */
-    def shutdown (implicit context: ExecutionContext): Unit = netty.shutdown
+    def shutdown: Unit = netty.shutdown
 
     /** Returns a netty channel */
-    def getChannel: Future[Channel] = {
-        builder.connect
-    }
+    def flatMap( callback: Channel => Future[Reply] ): Future[Reply]
+        = pool.flatMap( callback )
 }
 
 /**
  * An interface for sending commands and reading replies
  */
-class Engine ( val host: String, val port: Int, val maxConnect: Int ) {
+class Engine
+    ( val host: String, val port: Int, val maxConnect: Int )
+    ( implicit context: ExecutionContext )
+{
 
     /** The pool of channels */
     private val pool = new ChannelPool( host, port, maxConnect )
 
     /** Shuts down all the resources associated with this instace */
-    def shutdown (implicit context: ExecutionContext): Unit = pool.shutdown
+    def shutdown: Unit = pool.shutdown
 
     /** Sends the given command over the wire */
     def send
         ( command: Command )
         (implicit context: ExecutionContext)
     : Future[Reply] = {
-        pool.getChannel.flatMap { chan => {
+        pool.flatMap { chan => {
             val parser = new ReplyDecoder
             val pipeline = chan.getPipeline
 
