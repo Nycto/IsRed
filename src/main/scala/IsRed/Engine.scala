@@ -73,6 +73,9 @@ protected class ChannelPool
     /** The netty resources */
     private val netty = Netty()
 
+    /** Shutdown the Netty connections when the JVM exits */
+    sys.addShutdownHook { netty.shutdown }
+
     /** The base instance to use for building new channels */
     private val builder = netty
             .open(host, port)
