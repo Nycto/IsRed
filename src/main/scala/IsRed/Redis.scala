@@ -61,27 +61,29 @@ extends Iface with Hashes with Keys with Lists with Sets with Strings {
     type KeyTypeResult = Future[String]
 
     /** {@inheritDoc} */
-    override def getAck( command: Command ): AckResult
+    override private[isred] def getAck( command: Command ): AckResult
         = engine.send( command ).map( _.asAck )
 
     /** {@inheritDoc} */
-    override def getInt( command: Command ): IntResult
+    override private[isred] def getInt( command: Command ): IntResult
         = engine.send( command ).map( _.asInt )
 
     /** {@inheritDoc} */
-    override def getFloat( command: Command ): FloatResult
+    override private[isred] def getFloat( command: Command ): FloatResult
         = engine.send( command ).map( _.asDouble )
 
     /** {@inheritDoc} */
-    override def getBool( command: Command ): BoolResult
+    override private[isred] def getBool( command: Command ): BoolResult
         = engine.send( command ).map( _.asBool )
 
     /** {@inheritDoc} */
-    override def getBulk[A : Convert]( command: Command ): BulkResult[A]
+    override private[isred] def getBulk[A : Convert](
+        command: Command
+    ): BulkResult[A]
         = engine.send( command ).map( implicitly[Reply => A] _ )
 
     /** {@inheritDoc} */
-    override def getOptBulk[A : Convert](
+    override private[isred] def getOptBulk[A : Convert](
         command: Command
     ): OptBulkResult[A] = engine.send( command ).map( _ match {
         case NullReply() => None
@@ -89,21 +91,21 @@ extends Iface with Hashes with Keys with Lists with Sets with Strings {
     })
 
     /** {@inheritDoc} */
-    override def getBulkSet[A : Convert](
+    override private[isred] def getBulkSet[A : Convert](
         command: Command
     ): BulkSetResult[A] = engine.send( command ).map {
         _.asSeq.foldLeft( Set[A]() )(_ + _)
     }
 
     /** {@inheritDoc} */
-    override def getBulkSeq[A : Convert](
+    override private[isred] def getBulkSeq[A : Convert](
         command: Command
     ): BulkSeqResult[A] = engine.send( command ).map {
         _.asSeq.map( implicitly[Reply => A] _ )
     }
 
     /** {@inheritDoc} */
-    override def getBulkMap[A : Convert](
+    override private[isred] def getBulkMap[A : Convert](
         command: Command
     ): BulkMapResult[A] = engine.send( command ).map {
         _.asSeq.grouped(2).foldLeft( Map[String, A]() ) {
@@ -115,7 +117,9 @@ extends Iface with Hashes with Keys with Lists with Sets with Strings {
     }
 
     /** {@inheritDoc} */
-    override def getPop[A : Convert]( command: Command ): PopResult[A] = {
+    override private[isred] def getPop[A : Convert](
+        command: Command
+    ): PopResult[A] = {
         engine.send( command ).map { _ match {
             case NullReply() => throw PopTimeout( command )
             case tuple => tuple.asSeq match {
@@ -126,15 +130,15 @@ extends Iface with Hashes with Keys with Lists with Sets with Strings {
     }
 
     /** {@inheritDoc} */
-    override def getKeyList( command: Command ): KeyListResult
+    override private[isred] def getKeyList( command: Command ): KeyListResult
         = getBulkSeq[String]( command )
 
     /** {@inheritDoc} */
-    override def getKey( command: Command ): KeyResult
+    override private[isred] def getKey( command: Command ): KeyResult
         = getBulk[String]( command )
 
     /** {@inheritDoc} */
-    override def getKeyType( command: Command ): KeyTypeResult
+    override private[isred] def getKeyType( command: Command ): KeyTypeResult
         = getBulk[String]( command )
 
 }

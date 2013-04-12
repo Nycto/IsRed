@@ -59,33 +59,41 @@ trait Iface {
 
 
     /** A success or failure result */
-    def getAck( command: Command ): AckResult
+    private[isred] def getAck( command: Command ): AckResult
 
 
     /** An integer result */
-    def getInt( command: Command ): IntResult
+    private[isred] def getInt( command: Command ): IntResult
 
     /** A floating point number result */
-    def getFloat( command: Command ): FloatResult
+    private[isred] def getFloat( command: Command ): FloatResult
 
     /** A Boolean result */
-    def getBool( command: Command ): BoolResult
+    private[isred] def getBool( command: Command ): BoolResult
 
 
     /** A string, int or float result */
-    def getBulk[A: Convert]( command: Command ): BulkResult[A]
+    private[isred] def getBulk[A: Convert]( command: Command ): BulkResult[A]
 
     /** An optional bulk result */
-    def getOptBulk[A: Convert]( command: Command ): OptBulkResult[A]
+    private[isred] def getOptBulk[A: Convert](
+        command: Command
+    ): OptBulkResult[A]
 
     /** A set of bulk values */
-    def getBulkSet[A: Convert]( command: Command ): BulkSetResult[A]
+    private[isred] def getBulkSet[A: Convert](
+        command: Command
+    ): BulkSetResult[A]
 
     /** A sequence of bulk values */
-    def getBulkSeq[A: Convert]( command: Command ): BulkSeqResult[A]
+    private[isred] def getBulkSeq[A: Convert](
+        command: Command
+    ): BulkSeqResult[A]
 
     /** A map of bulk values */
-    def getBulkMap[A: Convert]( command: Command ): BulkMapResult[A]
+    private[isred] def getBulkMap[A: Convert](
+        command: Command
+    ): BulkMapResult[A]
 
 
     /**
@@ -93,16 +101,16 @@ trait Iface {
      * element is the list that was popped from, and the second element is
      * the value that was popped.
      */
-    def getPop[A : Convert]( command: Command ): PopResult[A]
+    private[isred] def getPop[A : Convert]( command: Command ): PopResult[A]
 
     /** A list of keys */
-    def getKeyList( command: Command ): KeyListResult
+    private[isred] def getKeyList( command: Command ): KeyListResult
 
     /** A single key result */
-    def getKey( command: Command ): KeyResult
+    private[isred] def getKey( command: Command ): KeyResult
 
     /** A result describing the type of a key */
-    def getKeyType( command: Command ): KeyTypeResult
+    private[isred] def getKeyType( command: Command ): KeyTypeResult
 
 }
 
