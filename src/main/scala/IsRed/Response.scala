@@ -104,6 +104,13 @@ case class MultiReply ( override val asSeq: MultiableReply* ) extends Reply
 case class IntReply ( override val asInt: Int ) extends MultiableReply {
 
     /** {@inheritDoc} */
+    override def asAck: Boolean = asInt match {
+        case 1 => true
+        case 0 => throw UnsuccessfulReply(this)
+        case _ => throw UnexpectedReply("0 or 1", this)
+    }
+
+    /** {@inheritDoc} */
     override def asDouble: Double = asInt
 
     /** {@inheritDoc} */

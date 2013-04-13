@@ -21,6 +21,15 @@ case class UnexpectedReply (
 )
 
 /**
+ * Thrown when a request is unsuccessful
+ */
+case class UnsuccessfulReply (
+    val reply: Reply
+) extends Exception(
+    "Unsuccessful Reply: %s".format(reply)
+)
+
+/**
  * Thrown when a blpop or brpop timeout
  */
 case class PopTimeout ( val command: Command ) extends Exception(

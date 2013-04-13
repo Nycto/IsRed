@@ -9,7 +9,9 @@ class ResponseTest extends Specification {
         "produce an Ack" in {
             SuccessReply("OK").asAck must_== true
             FailureReply("Err", "Oops").asAck must throwA[ReplyError]
-            IntReply(0).asAck must throwA[UnexpectedReply]
+            IntReply(0).asAck must throwA[UnsuccessfulReply]
+            IntReply(1).asAck must_== true
+            IntReply(23).asAck must throwA[UnexpectedReply]
             NullReply().asAck must throwA[UnexpectedReply]
             StringReply("Test").asAck must throwA[UnexpectedReply]
             MultiReply( IntReply(1) ).asAck must throwA[UnexpectedReply]
