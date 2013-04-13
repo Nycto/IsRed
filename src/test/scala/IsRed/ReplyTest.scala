@@ -2,7 +2,7 @@ package com.roundeights.isred
 
 import org.specs2.mutable._
 
-class ResponseTest extends Specification {
+class ReplyTest extends Specification {
 
     "Building simple types from responses" should {
 
