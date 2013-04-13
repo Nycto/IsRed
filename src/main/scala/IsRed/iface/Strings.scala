@@ -80,11 +80,11 @@ trait Strings extends Iface {
         = getBulkMap[A]( Cmd("MGET") ::: key :: keys :: Cmd() )
 
     /** Set multiple keys to multiple values */
-    def mSet ( pair: (Key, String), pairs: (Key, String) ): AckResult
+    def mSet ( pair: (Key, String), pairs: (Key, String)* ): AckResult
         = getAck( Cmd("MSET") ::: pair :: pairs :: Cmd() )
 
     /** Set multiple keys to multiple values, only if none of the keys exist */
-    def mSetNX ( pair: (Key, String), pairs: (Key, String) ): AckResult
+    def mSetNX ( pair: (Key, String), pairs: (Key, String)* ): AckResult
         = getAck( Cmd("MSETNX") ::: pair :: pairs :: Cmd() )
 
     /** Set the value and expiration in milliseconds of a key */
