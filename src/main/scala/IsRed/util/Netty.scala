@@ -58,7 +58,7 @@ private[isred] class Netty ( channelFactory: ChannelFactory ) {
     class Builder private[Netty] (
         private val address: InetSocketAddress,
         private val pipeline: List[(String, ChannelHandler)] = List(),
-        private val options: Map[String, Boolean] = Map()
+        private val options: Map[String, Any] = Map()
     ) {
 
         /** Adds a list of Channel Handlers to the pipeline */
@@ -67,7 +67,7 @@ private[isred] class Netty ( channelFactory: ChannelFactory ) {
         )
 
         /** Sets an option */
-        def set ( option: (String, Boolean)* ): Builder = new Builder(
+        def set ( option: (String, Any)* ): Builder = new Builder(
             address, pipeline, options ++ Map( option:_* )
         )
 
@@ -76,6 +76,10 @@ private[isred] class Netty ( channelFactory: ChannelFactory ) {
 
         /** Sets the tcpNoDelay option */
         def tcpNoDelay: Builder = set("tcpNoDelay" -> true)
+
+        /** Sets the connection timeout in milliseconds */
+        def connectTimeout( milliseconds: Int ): Builder
+            = set("connectTimeoutMillis" -> milliseconds)
 
         /** Uses the current config to open a connection */
         def connect: Future[Channel] = {

@@ -65,10 +65,12 @@ private[isred] class ReplyDecoder  extends SimpleChannelUpstreamHandler {
 /**
  * A pool of Netty Channels
  */
-private[isred] class ChannelPool
-    ( host: String, port: Int, maxConnect: Int )
-    ( implicit context: ExecutionContext )
-{
+private[isred] class ChannelPool (
+    host: String, port: Int,
+    maxConnect: Int, connectTimeout: Int
+)(
+    implicit context: ExecutionContext
+) {
 
     /** The netty resources */
     private val netty = Netty()
@@ -80,6 +82,7 @@ private[isred] class ChannelPool
     private val builder = netty
             .open(host, port)
             .tcpNoDelay.keepAlive
+            .connectTimeout( connectTimeout )
             .add( "encoder" -> new CommandEncoder )
             .add( "decoder" -> new ChannelUpstreamHandler {
                 override def handleUpstream(
@@ -105,13 +108,15 @@ private[isred] class ChannelPool
 /**
  * An interface for sending commands and reading replies
  */
-private[isred] class Engine
-    ( val host: String, val port: Int, val maxConnect: Int )
-    ( implicit context: ExecutionContext )
-{
+private[isred] class Engine (
+    host: String, port: Int,
+    maxConnect: Int, connectTimeout: Int
+)(
+    implicit context: ExecutionContext
+) {
 
     /** The pool of channels */
-    private val pool = new ChannelPool( host, port, maxConnect )
+    private val pool = new ChannelPool(host, port, maxConnect, connectTimeout)
 
     /** Shuts down all the resources associated with this instace */
     def shutdown: Unit = pool.shutdown

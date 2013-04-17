@@ -13,10 +13,13 @@ class Redis
 extends Iface with Hashes with Keys with Lists with Sets with Strings {
 
     /** Constructs a new redis interface */
-    def this
-        ( host: String, port: Int, maxConnect: Int = 5 )
-        ( implicit context: ExecutionContext )
-    = this ( new Engine(host, port, maxConnect) )
+    def this(
+        host: String,
+        port: Int = 6379,
+        maxConnect: Int = 5,
+        connectTimeout: Int = 2000
+    )( implicit context: ExecutionContext )
+        = this ( new Engine(host, port, maxConnect, connectTimeout) )
 
     /** Shuts down all the resources associated with this instace */
     def shutdown: Unit = engine.shutdown
