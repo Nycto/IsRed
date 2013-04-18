@@ -21,16 +21,12 @@ trait Strings extends Iface {
         = getInt( Cmd("APPEND") ::: key :: value :: Cmd() )
 
     /** Count set bits in a string */
-    def bitCount ( key: Key, start: Option[Int], end: Option[Int] ): IntResult
+    def bitCount ( key: Key, start: Int, end: Int ): IntResult
         = getInt( Cmd("BITCOUNT") ::: key :: start :: end :: Cmd() )
 
     /** Count set bits in a string */
     def bitCount ( key: Key ): IntResult
-        = bitCount( key, None, None )
-
-    /** Count set bits in a string */
-    def bitCount ( key: Key, start: Int, end: Int ): IntResult
-        = bitCount( key, Some(start), Some(end) )
+        = getInt( Cmd("BITCOUNT") ::: key :: Cmd() )
 
     /** Perform bitwise operations between strings */
     def bitOp (
@@ -52,8 +48,8 @@ trait Strings extends Iface {
         = getOptBulk[A]( Cmd("GET") ::: key :: Cmd() )
 
     /** Returns the bit value at offset in the string value stored at key */
-    def getBit ( key: Key, offset: Int ): IntResult
-        = getInt( Cmd("GETBIT") ::: key :: offset :: Cmd() )
+    def getBit ( key: Key, offset: Int ): BoolResult
+        = getBool( Cmd("GETBIT") ::: key :: offset :: Cmd() )
 
     /** Get a substring of the string stored at a key */
     def getRange[A : Convert] ( key: Key, start: Int, end: Int ): BulkResult[A]
@@ -72,12 +68,12 @@ trait Strings extends Iface {
         = getInt( Cmd("INCRBY") ::: key :: increment :: Cmd() )
 
     /** Increment the float value of a key by the given amount */
-    def incrByFloat ( key: Key, increment: Int ): FloatResult
+    def incrByFloat ( key: Key, increment: Double ): FloatResult
         = getFloat( Cmd("INCRBYFLOAT") ::: key :: increment :: Cmd() )
 
     /** Get the values of all the given keys */
-    def mGet[A : Convert] ( key: Key, keys: Key* ): BulkMapResult[A]
-        = getBulkMap[A]( Cmd("MGET") ::: key :: keys :: Cmd() )
+    def mGet[A : Convert] ( key: Key, keys: Key* ): BulkSeqResult[A]
+        = getBulkSeq[A]( Cmd("MGET") ::: key :: keys :: Cmd() )
 
     /** Set multiple keys to multiple values */
     def mSet ( pair: (Key, String), pairs: (Key, String)* ): AckResult
@@ -96,8 +92,10 @@ trait Strings extends Iface {
         = getAck( Cmd("SET") ::: key :: value :: Cmd() )
 
     /** Sets or clears the bit at offset in the string value stored at key */
-    def setBit ( key: Key, offset: Int, value: String ): IntResult
-        = getInt( Cmd("SETBIT") ::: key :: offset :: value :: Cmd() )
+    def setBit ( key: Key, offset: Int, value: Boolean ): BoolResult = {
+        val bit = if ( value ) 1 else 0
+        getBool( Cmd("SETBIT") ::: key :: offset :: bit :: Cmd() )
+    }
 
     /** Set the value and expiration of a key */
     def setEx ( key: Key, seconds: Int, value: String ): AckResult

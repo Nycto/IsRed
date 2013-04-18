@@ -6,16 +6,16 @@ package com.roundeights.isred
 trait Keys extends Iface {
 
     /** Delete a key */
-    def del ( key: Key, keys: Key* ): AckResult
-        = getAck( Cmd("DEL") ::: key :: keys :: Cmd() )
+    def del ( key: Key, keys: Key* ): BoolResult
+        = getBool( Cmd("DEL") ::: key :: keys :: Cmd() )
 
     /** Return a serialized version of the value stored at the specified key. */
     def dump[A : Convert] ( key: Key ): BulkResult[A]
         = getBulk[A]( Cmd("DUMP") ::: key :: Cmd() )
 
     /** Determine if a key exists */
-    def exists ( key: Key ): AckResult
-        = getAck( Cmd("EXISTS") ::: key :: Cmd() )
+    def exists ( key: Key ): BoolResult
+        = getBool( Cmd("EXISTS") ::: key :: Cmd() )
 
     /** Set a key's time to live in seconds */
     def expire ( key: Key, seconds: Int ): AckResult
