@@ -41,6 +41,9 @@ trait Iface {
     type BulkMapResult[A]
 
 
+    /** The result of a TTL inquiry */
+    type TtlResult
+
     /**
      * The result of a pop. This is generally a tuple where the first
      * element is the list that was popped from, and the second element is
@@ -95,6 +98,11 @@ trait Iface {
         command: Command
     ): BulkMapResult[A]
 
+
+    /**
+     * The result of a ttl query
+     */
+    private[isred] def getTtl( command: Command ): TtlResult
 
     /**
      * The result of a pop. This is generally a tuple where the first

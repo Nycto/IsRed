@@ -67,8 +67,8 @@ trait Keys extends Iface {
         = getAck( Cmd("PEXPIREAT") ::: key :: milliTimestamp :: Cmd() )
 
     /** Get the time to live for a key in milliseconds */
-    def pTTL ( key: Key ): IntResult
-        = getInt( Cmd("PTTL") ::: key :: Cmd() )
+    def pTtl ( key: Key ): TtlResult
+        = getTtl( Cmd("PTTL") ::: key :: Cmd() )
 
     /** Return a random key from the keyspace */
     def randomKey (): KeyResult
@@ -90,8 +90,8 @@ trait Keys extends Iface {
         = getAck( Cmd("RESTORE") ::: key :: ttl :: serialized :: Cmd() )
 
     /** Get the time to live for a key */
-    def ttl ( key: Key ): IntResult
-        = getInt( Cmd("TTL") ::: key :: Cmd() )
+    def ttl ( key: Key ): TtlResult
+        = getTtl( Cmd("TTL") ::: key :: Cmd() )
 
     /** Determine the type stored at key */
     def keyType ( key: Key ): KeyTypeResult

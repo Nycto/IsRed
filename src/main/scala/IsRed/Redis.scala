@@ -52,6 +52,9 @@ extends Iface with Hashes with Keys with Lists with Sets with Strings {
     type BulkMapResult[A] = Future[Map[String, A]]
 
     /** {@inheritDoc} */
+    type TtlResult = Future[Option[Int]]
+
+    /** {@inheritDoc} */
     type PopResult[A] = Future[(String, A)]
 
     /** {@inheritDoc} */
@@ -118,6 +121,10 @@ extends Iface with Hashes with Keys with Lists with Sets with Strings {
             }
         }
     }
+
+    /** {@inheritDoc} */
+    override private[isred] def getTtl( command: Command ): TtlResult
+        = getInt( command ).map { ttl => if ( ttl < 0 ) None else Some(ttl) }
 
     /** {@inheritDoc} */
     override private[isred] def getPop[A : Convert](

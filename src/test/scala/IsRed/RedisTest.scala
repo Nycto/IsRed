@@ -110,6 +110,13 @@ class RedisTest extends Specification with Mockito {
             ) must_== Map( "One" -> "Two" )
         }
 
+        "Return a TTL result" in {
+            await( newRedis( IntReply(-1) ).getTtl(cmd) ) must_== None
+            await( newRedis( IntReply(-2) ).getTtl(cmd) ) must_== None
+            await( newRedis( IntReply(0) ).getTtl(cmd) ) must_== Some(0)
+            await( newRedis( IntReply(50) ).getTtl(cmd) ) must_== Some(50)
+        }
+
         "Fail when a Pop command times out" in {
             await(
                 newRedis( NullReply() ).getPop[String](cmd)
