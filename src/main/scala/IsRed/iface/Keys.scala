@@ -1,6 +1,28 @@
 package com.roundeights.isred
 
 /**
+ * The different types of keys
+ */
+object KeyType extends Enumeration {
+    type Type = Value
+    val STRING = Value("string")
+    val LIST = Value("list")
+    val SET = Value("set")
+    val ZSET = Value("zset")
+    val HASH = Value("hash")
+    val NONE = Value("none")
+
+    /** Returns a key type from a string */
+    def fromString (name: String): KeyType.Type = {
+        values.filter(_.toString == name).headOption.getOrElse(
+            throw new IllegalArgumentException(
+                "Invalid key type: %s".format( name )
+            )
+        )
+    }
+}
+
+/**
  * Methods for interacting with Redis Keys
  */
 trait Keys extends Iface {
@@ -10,8 +32,8 @@ trait Keys extends Iface {
         = getBool( Cmd("DEL") ::: key :: keys :: Cmd() )
 
     /** Return a serialized version of the value stored at the specified key. */
-    def dump[A : Convert] ( key: Key ): BulkResult[A]
-        = getBulk[A]( Cmd("DUMP") ::: key :: Cmd() )
+    def dump ( key: Key ): BulkResult[String]
+        = getBulk[String]( Cmd("DUMP") ::: key :: Cmd() )
 
     /** Determine if a key exists */
     def exists ( key: Key ): BoolResult
@@ -73,7 +95,7 @@ trait Keys extends Iface {
 
     /** Determine the type stored at key */
     def keyType ( key: Key ): KeyTypeResult
-        = getKeyType( Cmd("KEYTYPE") ::: key :: Cmd() )
+        = getKeyType( Cmd("TYPE") ::: key :: Cmd() )
 
 }
 

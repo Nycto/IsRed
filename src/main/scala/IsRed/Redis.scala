@@ -55,13 +55,13 @@ extends Iface with Hashes with Keys with Lists with Sets with Strings {
     type PopResult[A] = Future[(String, A)]
 
     /** {@inheritDoc} */
-    type KeyListResult = Future[Seq[String]]
+    type KeyListResult = Future[Seq[Key]]
 
     /** {@inheritDoc} */
-    type KeyResult = Future[String]
+    type KeyResult = Future[Key]
 
     /** {@inheritDoc} */
-    type KeyTypeResult = Future[String]
+    type KeyTypeResult = Future[KeyType.Type]
 
     /** {@inheritDoc} */
     override private[isred] def getAck( command: Command ): AckResult
@@ -134,15 +134,15 @@ extends Iface with Hashes with Keys with Lists with Sets with Strings {
 
     /** {@inheritDoc} */
     override private[isred] def getKeyList( command: Command ): KeyListResult
-        = getBulkSeq[String]( command )
+        = getBulkSeq[Key]( command )
 
     /** {@inheritDoc} */
     override private[isred] def getKey( command: Command ): KeyResult
-        = getBulk[String]( command )
+        = getBulk[Key]( command )
 
     /** {@inheritDoc} */
     override private[isred] def getKeyType( command: Command ): KeyTypeResult
-        = getBulk[String]( command )
+        = getBulk[Reply]( command ).map { _.asKeyType }
 
 }
 

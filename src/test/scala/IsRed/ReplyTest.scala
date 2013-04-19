@@ -67,6 +67,16 @@ class ReplyTest extends Specification {
             MultiReply( IntReply(1) ).asSeq must_== Seq( IntReply(1) )
         }
 
+        "produce a KeyType" in {
+            SuccessReply("string").asKeyType must_== KeyType.STRING
+            SuccessReply("Hrm").asKeyType must throwA[IllegalArgumentException]
+            FailureReply("Err", "Oops").asKeyType must throwA[ReplyError]
+            IntReply(1).asKeyType must throwA[UnexpectedReply]
+            NullReply().asKeyType must throwA[UnexpectedReply]
+            StringReply("Test").asKeyType must throwA[UnexpectedReply]
+            MultiReply().asKeyType must throwA[UnexpectedReply]
+        }
+
     }
 
 }

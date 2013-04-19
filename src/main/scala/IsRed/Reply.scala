@@ -20,6 +20,13 @@ object Reply {
     /** Convert to a String */
     implicit def reply2string ( reply: Reply ) = reply.asString
 
+    /** Convert to a Key */
+    implicit def reply2key ( reply: Reply ) = Key( reply.asString )
+
+    /** Convert to a KeyType */
+    implicit def reply2keytype ( reply: Reply )
+        = KeyType.fromString( reply.asString )
+
 }
 
 
@@ -43,8 +50,11 @@ sealed trait Reply {
     /** Returns this value as a String */
     def asString: String = throw UnexpectedReply("String", this)
 
-    /** Returns this value as as sequence */
+    /** Returns this value as a sequence */
     def asSeq: Seq[MultiableReply] = throw UnexpectedReply("Sequence", this)
+
+    /** Returns this value a key type */
+    def asKeyType: KeyType.Type = throw UnexpectedReply("KeyType", this)
 }
 
 /**
@@ -57,6 +67,9 @@ case class SuccessReply ( val code: String ) extends Reply {
 
     /** {@inheritDoc} */
     override def asBool: Boolean = true
+
+    /** {@inheritDoc} */
+    override def asKeyType: KeyType.Type = KeyType.fromString( code )
 }
 
 /**
@@ -86,6 +99,9 @@ case class FailureReply (
 
     /** {@inheritDoc} */
     override def asSeq: Seq[MultiableReply] = throwErr
+
+    /** {@inheritDoc} */
+    override def asKeyType: KeyType.Type = throwErr
 }
 
 /**
