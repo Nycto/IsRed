@@ -27,6 +27,8 @@ object Reply {
     implicit def reply2keytype ( reply: Reply )
         = KeyType.fromString( reply.asString )
 
+    /** Convert to a byte array */
+    implicit def reply2bytes ( reply: Reply ) = reply.asBytes
 }
 
 
@@ -55,6 +57,9 @@ sealed trait Reply {
 
     /** Returns this value a key type */
     def asKeyType: KeyType.Type = throw UnexpectedReply("KeyType", this)
+
+    /** Returns this value as a list of bytes */
+    def asBytes: Array[Byte] = throw UnexpectedReply("Byte Array", this)
 }
 
 /**
@@ -102,6 +107,9 @@ case class FailureReply (
 
     /** {@inheritDoc} */
     override def asKeyType: KeyType.Type = throwErr
+
+    /** {@inheritDoc} */
+    override def asBytes: Array[Byte] = throwErr
 }
 
 /**
@@ -134,6 +142,10 @@ case class IntReply ( override val asInt: Int ) extends MultiableReply {
 
     /** {@inheritDoc} */
     override def asString: String = asInt.toString
+
+    /** {@inheritDoc} */
+    override def asBytes: Array[Byte]
+        = java.nio.ByteBuffer.allocate(4).putInt( asInt ).array
 }
 
 /**
@@ -149,20 +161,52 @@ case class NullReply () extends MultiableReply {
 
     /** {@inheritDoc} */
     override def asString: String = ""
+
+    /** {@inheritDoc} */
+    override def asBytes: Array[Byte] = new Array[Byte](0)
+}
+
+/** Companion */
+object StringReply {
+
+    /** Creates a string reply from a string */
+    def apply ( bytes: Array[Byte] ): StringReply = new StringReply( bytes )
+
+    /** Creates a string reply from a string */
+    def apply ( str: String ): StringReply = apply( str.getBytes("UTF8") )
 }
 
 /**
  * String bulk response
  */
-case class StringReply (
-    override val asString: String
-) extends MultiableReply {
+class StringReply (
+    override val asBytes: Array[Byte]
+) extends MultiableReply with Equals {
+
+    /** {@inheritDoc} */
+    override def asString: String = Parser.asStr( asBytes )
 
     /** {@inheritDoc} */
     override def asInt: Int = asString.toInt
 
     /** {@inheritDoc} */
     override def asDouble: Double = asString.toDouble
+
+    /** {@inheritDoc} */
+    override def toString = "StringReply(%s)".format( asString )
+
+    /** {@inheritDoc} */
+    override def canEqual( other: Any ) = other.isInstanceOf[StringReply]
+
+    /** {@inheritDoc} */
+    override def equals( other: Any ): Boolean = other match {
+        case that: StringReply if that.canEqual( this )
+            => asBytes.deep == that.asBytes.deep
+        case _ => false
+    }
+
+    /** {@inheritDoc} */
+    override def hashCode: Int = asBytes.foldLeft(41)( _ * 41 + _ )
 }
 
 

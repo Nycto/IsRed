@@ -38,7 +38,7 @@ private[isred] class StringParser extends Parser[MultiableReply] {
                 else {
                     contentParser = Some( new ParseChain(
                         new ParseLength( length, Parser.asStr _ ),
-                        new ParseUntil( Parser.ENDLINE, (_: Array[Byte]) => () ),
+                        new ParseUntil( Parser.ENDLINE, Parser.void _ ),
                         (str: String, _: Unit) => StringReply(str)
                     ))
 

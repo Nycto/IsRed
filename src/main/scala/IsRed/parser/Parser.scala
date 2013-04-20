@@ -87,6 +87,12 @@ private[isred] object Parser {
     private [isred] def asStr ( bytes: Array[Byte] )
         = new String(bytes, "UTF8")
 
+    /** A pass through method */
+    private [isred] def noop ( bytes: Array[Byte] ) = bytes
+
+    /** A data sink */
+    private [isred] def void ( bytes: Array[Byte] ): Unit = ()
+
 
     /** A shared \r\n byte array */
     private[isred] val ENDLINE: Array[Byte] = "\r\n".getBytes("UTF8")

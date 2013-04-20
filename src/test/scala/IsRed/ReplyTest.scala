@@ -77,6 +77,14 @@ class ReplyTest extends Specification {
             MultiReply().asKeyType must throwA[UnexpectedReply]
         }
 
+        "produce a byte array" in {
+            SuccessReply("OK").asBytes must throwA[UnexpectedReply]
+            FailureReply("Err", "Oops").asBytes must throwA[ReplyError]
+            StringReply("Test").asBytes.deep must_== "Test".getBytes.deep
+            IntReply(123).asBytes.deep must_== Seq(0, 0, 0, 123).toArray.deep
+            NullReply().asBytes must_== new Array(0)
+            MultiReply( IntReply(1) ).asBytes must throwA[UnexpectedReply]
+        }
     }
 
 }
