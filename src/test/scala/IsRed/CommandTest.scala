@@ -11,7 +11,7 @@ class CommandTest extends Specification {
         }
 
         "Handle a command with arguments" in {
-            val cmd = Cmd("GOOBER") ::: "one" :: 278 :: 3.14 :: Cmd()
+            val cmd = "GOOBER" ::: "one" :: 278 :: 3.14 :: Cmd()
             cmd.protocolize must_== (
                 "*4\r\n" +
                 "$6\r\nGOOBER\r\n" +
@@ -21,8 +21,16 @@ class CommandTest extends Specification {
             )
         }
 
+        "Add a byte array" in {
+            ( "BLAH" ::: "test".getBytes :: Cmd() ).protocolize must_== (
+                "*2\r\n" +
+                "$4\r\nBLAH\r\n" +
+                "$4\r\ntest\r\n"
+            )
+        }
+
         "Handle a an empty string argument" in {
-            ( Cmd("BLAH") ::: "" :: Cmd() ).protocolize must_== (
+            ( "BLAH" ::: "" :: Cmd() ).protocolize must_== (
                 "*2\r\n" +
                 "$4\r\nBLAH\r\n" +
                 "$0\r\n\r\n"
@@ -30,7 +38,7 @@ class CommandTest extends Specification {
         }
 
         "Add each element in a sequence" in {
-            ( Cmd("BLAH") ::: List(1, 2, 3) :: Cmd() ).protocolize must_== (
+            ( "BLAH" ::: List(1, 2, 3) :: Cmd() ).protocolize must_== (
                 "*4\r\n" +
                 "$4\r\nBLAH\r\n" +
                 "$1\r\n1\r\n" +
@@ -40,7 +48,7 @@ class CommandTest extends Specification {
         }
 
         "Add both elements in a tuple" in {
-            ( Cmd("BLAH") ::: (1 -> 2) :: Cmd() ).protocolize must_== (
+            ( "BLAH" ::: (1 -> 2) :: Cmd() ).protocolize must_== (
                 "*3\r\n" +
                 "$4\r\nBLAH\r\n" +
                 "$1\r\n1\r\n" +

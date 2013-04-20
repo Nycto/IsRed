@@ -6,18 +6,19 @@ package com.roundeights.isred
 private [isred] object Cmd {
 
     /** Collects a list of args and generates a command */
-    class Args ( private val args: List[String] ) {
+    class Args ( private val args: List[Array[Byte]] ) {
 
-        /** Adds a new argument to the left of this argument list */
+        /** Adds an argument to this list */
         def :: ( arg: Any ): Args = arg match {
-            case str: String => new Args( str :: args )
+            case array: Array[Byte] => new Args( array :: args )
+            case str: String => new Args( str.getBytes("UTF8") :: args )
             case (left, right) => left :: right :: this
             case seq: Seq[_] => seq.foldRight( this )( _ :: _ )
-            case _ => new Args( arg.toString :: args )
+            case _ => new Args( arg.toString.getBytes("UTF8") :: args )
         }
 
         /** Finalizes a list of arguments */
-        def ::: ( cmd: Command ): Command = Command( cmd.command, args )
+        def ::: ( cmd: String ): Command = Command( cmd, args )
 
     }
 
@@ -38,15 +39,14 @@ private [isred] object Cmd {
  * A Redis command
  */
 private[isred] case class Command (
-    val command: String, val args: Seq[String] = Nil
+    val command: String, val args: Seq[Array[Byte]] = Nil
 ) {
 
     /** Invokes a callback for each chunk of bytes in this command */
     def eachChunk ( callback: (Array[Byte]) => Unit ): Unit = {
 
         // Pushes an individual argument to the result
-        def pushArg ( arg: String ): Unit = {
-            val bytes = arg.getBytes("UTF8")
+        def pushArg ( bytes: Array[Byte] ): Unit = {
 
             // Push the number of bytes in this argument
             callback( Cmd.DOLLAR )
@@ -64,7 +64,7 @@ private[isred] case class Command (
         callback( Cmd.ENDLINE )
 
         // Push each argument
-        pushArg( command )
+        pushArg( command.getBytes("UTF8") )
         args.foreach( pushArg(_) )
     }
 

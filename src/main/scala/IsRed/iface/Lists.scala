@@ -19,14 +19,14 @@ trait Lists extends Iface {
      * is available.
      */
     def bLPop[A : Convert] ( timeout: Int, key: Key, keys: Key* ): PopResult[A]
-        = getPop[A]( Cmd("BLPOP") ::: timeout :: key :: keys :: Cmd() )
+        = getPop[A]( "BLPOP" ::: timeout :: key :: keys :: Cmd() )
 
     /**
      * Remove and get the last element in a list, or block until one
      * is available
      */
     def bRPop[A : Convert] ( timeout: Int, key: Key, keys: Key* ): PopResult[A]
-        = getPop[A]( Cmd("BRPOP") ::: timeout :: key :: keys :: Cmd() )
+        = getPop[A]( "BRPOP" ::: timeout :: key :: keys :: Cmd() )
 
     /**
      * Pop a value from a list, push it to another list and return it; or
@@ -35,58 +35,57 @@ trait Lists extends Iface {
     def bRPopLPush[A : Convert] (
         source: Key, destination: Key, timeout: Int
     ): BulkResult[A] = getBulk(
-        Cmd("BRPOPLPUSH") ::: source :: destination :: timeout :: Cmd()
+        "BRPOPLPUSH" ::: source :: destination :: timeout :: Cmd()
     )
 
     /** Get an element from a list by its index */
     def lIndex[A : Convert] ( key: Key, index: Int ): OptBulkResult[A]
-        = getOptBulk[A]( Cmd("LINDEX") ::: key :: index :: Cmd() )
+        = getOptBulk[A]( "LINDEX" ::: key :: index :: Cmd() )
 
     /** Insert an element before or after another element in a list */
     def lInsert (
         key: Key, position: Position.Pos, pivot: Key, value: String
     ): IntResult = getInt(
-        Cmd("LINSERT") ::: key :: position :: pivot :: value :: Cmd()
+        "LINSERT" ::: key :: position :: pivot :: value :: Cmd()
     )
 
     /** Get the length of a list */
-    def lLen ( key: Key ): IntResult
-        = getInt( Cmd("LLEN") ::: key :: Cmd() )
+    def lLen ( key: Key ): IntResult = getInt( "LLEN" ::: key :: Cmd() )
 
     /** Remove and get the first element in a list */
     def lPop[A : Convert] ( key: Key ): OptBulkResult[A]
-        = getOptBulk[A]( Cmd("LPOP") ::: key :: Cmd() )
+        = getOptBulk[A]( "LPOP" ::: key :: Cmd() )
 
     /** Prepend one or multiple values to a list */
     def lPush ( key: Key, value: String, values: String ): IntResult
-        = getInt( Cmd("LPUSH") ::: key :: value :: values :: Cmd() )
+        = getInt( "LPUSH" ::: key :: value :: values :: Cmd() )
 
     /** Prepend a value to a list, only if the list exists */
     def lPushX ( key: Key, value: String ): IntResult
-        = getInt( Cmd("LPUSHX") ::: key :: value :: Cmd() )
+        = getInt( "LPUSHX" ::: key :: value :: Cmd() )
 
     /** Get a range of elements from a list */
     def lRange[A : Convert] (
         key: Key, start: Int, stop: Int
     ): BulkSeqResult[A] = {
-        getBulkSeq[A]( Cmd("LRANGE") ::: key :: start :: stop :: Cmd() )
+        getBulkSeq[A]( "LRANGE" ::: key :: start :: stop :: Cmd() )
     }
 
     /** Remove elements from a list */
     def lRem ( key: Key, count: Int, value: String ): IntResult
-        = getInt( Cmd("LREM") ::: key :: count :: value :: Cmd() )
+        = getInt( "LREM" ::: key :: count :: value :: Cmd() )
 
     /** Set the value of an element in a list by its index */
     def lSet ( key: Key, index: Int, value: String ): AckResult
-        = getAck( Cmd("LSET") ::: key :: index :: value :: Cmd() )
+        = getAck( "LSET" ::: key :: index :: value :: Cmd() )
 
     /** Trim a list to the specified range */
     def lTrim ( key: Key, start: Int, stop: Int ): AckResult
-        = getAck( Cmd("LTRIM") ::: key :: start :: stop :: Cmd() )
+        = getAck( "LTRIM" ::: key :: start :: stop :: Cmd() )
 
     /** Remove and get the last element in a list */
     def rPop[A : Convert] ( key: Key ): OptBulkResult[A]
-        = getOptBulk[A]( Cmd("RPOP") ::: key :: Cmd() )
+        = getOptBulk[A]( "RPOP" ::: key :: Cmd() )
 
     /**
      * Remove the last element in a list, append it to another list
@@ -95,16 +94,16 @@ trait Lists extends Iface {
     def rPopLPush[A : Convert] (
         source: Key, destination: Key
     ): OptBulkResult[A] = {
-        getOptBulk[A]( Cmd("RPOPLPUSH") ::: source :: destination :: Cmd() )
+        getOptBulk[A]( "RPOPLPUSH" ::: source :: destination :: Cmd() )
     }
 
     /** Append one or multiple values to a list */
     def rPush ( key: Key, value: String, values: String* ): IntResult
-        = getInt( Cmd("RPUSH") ::: key :: value :: values :: Cmd() )
+        = getInt( "RPUSH" ::: key :: value :: values :: Cmd() )
 
     /** Append a value to a list, only if the list exists */
     def rPushX ( key: Key, value: String ): IntResult
-        = getInt( Cmd("RPUSHX") ::: key :: value :: Cmd() )
+        = getInt( "RPUSHX" ::: key :: value :: Cmd() )
 
 }
 

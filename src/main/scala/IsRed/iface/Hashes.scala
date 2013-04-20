@@ -7,60 +7,59 @@ trait Hashes extends Iface {
 
     /** Delete one or more hash fields */
     def hDel ( key: Key, field: Key, fields: Key* ): IntResult
-        = getInt( Cmd("HDEL") ::: key :: field :: fields :: Cmd() )
+        = getInt( "HDEL" ::: key :: field :: fields :: Cmd() )
 
     /** Determine if a hash field exists */
     def hExists ( key: Key, field: Key ): BoolResult
-        = getBool( Cmd("HEXISTS") ::: key :: field :: Cmd() )
+        = getBool( "HEXISTS" ::: key :: field :: Cmd() )
 
     /** Get the value of a hash field */
     def hGet[A : Convert] ( key: Key, field: Key ): OptBulkResult[A]
-        = getOptBulk[A]( Cmd("HGET") ::: key :: field :: Cmd() )
+        = getOptBulk[A]( "HGET" ::: key :: field :: Cmd() )
 
     /** Get all the fields and values in a hash */
     def hGetAll[A : Convert] ( key: Key ): BulkMapResult[A]
-        = getBulkMap[A]( Cmd("HGETALL") ::: key :: Cmd() )
+        = getBulkMap[A]( "HGETALL" ::: key :: Cmd() )
 
     /** Increment the integer value of a hash field by the given number */
     def hIncrBy ( key: Key, field: Key, increment: Int ): IntResult
-        = getInt( Cmd("HINCRBY") ::: key :: field :: increment :: Cmd() )
+        = getInt( "HINCRBY" ::: key :: field :: increment :: Cmd() )
 
     /** Increment the float value of a hash field by the given amount */
     def hIncrByFloat ( key: Key, field: Key, increment: Float ): FloatResult
-        = getFloat( Cmd("HINCRBYFLOAT") ::: key :: field :: increment :: Cmd() )
+        = getFloat( "HINCRBYFLOAT" ::: key :: field :: increment :: Cmd() )
 
     /** Get all the fields in a hash */
     def hKeys[A : Convert] ( key: Key ): BulkSetResult[A]
-        = getBulkSet[A]( Cmd("HKEYS") ::: key :: Cmd() )
+        = getBulkSet[A]( "HKEYS" ::: key :: Cmd() )
 
     /** Get the number of fields in a hash */
-    def hLen ( key: Key ): IntResult
-        = getInt( Cmd("HLEN") ::: key :: Cmd() )
+    def hLen ( key: Key ): IntResult = getInt( "HLEN" ::: key :: Cmd() )
 
     /** Get the values of all the given hash fields */
     def hMGet[A : Convert] (
         key: Key, field: Key, fields: Key*
     ): BulkMapResult[A] = {
-        getBulkMap[A]( Cmd("HMGET") ::: key :: field :: fields :: Cmd() )
+        getBulkMap[A]( "HMGET" ::: key :: field :: fields :: Cmd() )
     }
 
     /** Set multiple hash fields to multiple values */
     def hMSet (
         key: Key, pair: (Key, String), pairs: (Key, String)*
     ): AckResult
-        = getAck( Cmd("HMSET") ::: key :: pair :: pairs :: Cmd() )
+        = getAck( "HMSET" ::: key :: pair :: pairs :: Cmd() )
 
     /** Set the string value of a hash field */
     def hSet ( key: Key, field: Key, value: String ): AckResult
-        = getAck( Cmd("HSET") ::: key :: field :: value :: Cmd() )
+        = getAck( "HSET" ::: key :: field :: value :: Cmd() )
 
     /** Set the value of a hash field, only if the field does not exist */
     def hSetNX ( key: Key, field: Key, value: String ): AckResult
-        = getAck( Cmd("HSETNX") ::: key :: field :: value :: Cmd() )
+        = getAck( "HSETNX" ::: key :: field :: value :: Cmd() )
 
     /** Get all the values in a hash */
     def hVals[A : Convert] ( key: Key ): BulkSeqResult[A]
-        = getBulkSeq[A]( Cmd("HVALS") ::: key :: Cmd() )
+        = getBulkSeq[A]( "HVALS" ::: key :: Cmd() )
 
 }
 
