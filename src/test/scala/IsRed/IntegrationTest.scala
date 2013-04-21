@@ -111,5 +111,64 @@ class IntegrationTest extends Specification {
         }
     }
 
+    "Key operations" should {
+
+        "Support existence ops: EXISTS, DEL" in {
+            val key = "test-key-exist"
+            await( redis.set(key, "value") )
+            await( redis.exists(key) ) must_== true
+            await( redis.del(key) )
+            await( redis.exists(key) ) must_== false
+        }
+
+        "Support key ops: RANDOMKEY, KEYS, KEYTYPE" in {
+            val key = "test-key-keys"
+            await( redis.set(key, "value") )
+            await( redis.randomKey() ) must beAnInstanceOf[Key]
+            await( redis.keys("test-key-*") ).length must be_>(0)
+            await( redis.keyType(key) ) must_== KeyType.STRING
+        }
+
+        "Support rename ops: RENAME, RENAMENX" in {
+            val key = "test-key-rename"
+            val key2 = "test-key-rename-2"
+            await( redis.set(key, "value") )
+            await( redis.rename(key, key2) ) must_== true
+            await( redis.rename(key2, key) ) must_== true
+        }
+
+        "Support expire ops: EXPIRE, EXPIREAT, PERSIST, PEXPIRE, PEXPIREAT" in {
+            val key = "test-key-expire"
+            await( redis.set(key, "value") )
+            await( redis.expire(key, 600) ) must_== true
+            await( redis.persist( key ) ) must_== true
+            await( redis.expireAt(
+                key, (System.currentTimeMillis / 1000L).toInt + 600
+            ) ) must_== true
+            await( redis.pExpire(key, 6000) ) must_== true
+            await( redis.pExpireAt(
+                key, System.currentTimeMillis.toInt + 6000
+            ) ) must_== true
+        }
+
+        "Support ttl ops: TTL, PTTL" in {
+            val key = "test-key-ttl"
+            await( redis.set(key, "value") )
+            await( redis.expire(key, 600) )
+            await( redis.ttl(key) ).get must be_>(0)
+            await( redis.pTtl(key) ).get must be_>(0)
+        }
+
+        "Support dump ops: DUMP, RESTORE" in {
+            val key = "test-key-dump"
+            val into = "test-key-into"
+            await( redis.del(into) )
+            await( redis.set(key, "value") )
+            val dumped = await( redis.dump(key) )
+            await( redis.restore( into, dumped ) ) must_== true
+            await( redis.get[String](into) ) must_== Some("value")
+        }
+    }
+
 }
 
