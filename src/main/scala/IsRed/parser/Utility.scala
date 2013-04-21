@@ -204,3 +204,19 @@ private[isred] class ParseSwitch[T] (
 
 }
 
+
+/**
+ * A parser that dumps the data it parses to stdout
+ */
+private[isred] class DebugParser[T] (
+    private val inner: Parser[T]
+) extends Parser[T] {
+
+    /** {@inheritDoc} */
+    override def parse ( bytes: Array[Byte], start: Int ): Parser.Result[T] = {
+        println( Parser.readable(bytes) )
+        inner.parse( bytes, start )
+    }
+}
+
+

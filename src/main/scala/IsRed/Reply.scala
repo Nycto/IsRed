@@ -174,6 +174,10 @@ object StringReply {
 
     /** Creates a string reply from a string */
     def apply ( str: String ): StringReply = apply( str.getBytes("UTF8") )
+
+    /** Creates a string reply from list of ints */
+    def apply ( bytes: Int* ): StringReply
+        = apply( bytes.map( _.toByte ).toArray )
 }
 
 /**
@@ -184,7 +188,7 @@ class StringReply (
 ) extends MultiableReply with Equals {
 
     /** {@inheritDoc} */
-    override def asString: String = Parser.asStr( asBytes )
+    override def asString: String = Parser.readable( asBytes )
 
     /** {@inheritDoc} */
     override def asInt: Int = asString.toInt

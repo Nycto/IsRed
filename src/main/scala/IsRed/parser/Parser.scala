@@ -104,16 +104,24 @@ private[isred] object Parser {
     /**
      * Generates a parser for reading a full Redis reply
      */
-    def apply(): Parser[Reply] = new ParserWrap[Reply] (
-        new ParseSwitch(
-            '+' -> new SuccessParser,
-            '-' -> new FailureParser,
-            '*' -> new MultiParser,
-            ':' -> new IntParser,
-            '$' -> new StringParser
-        )
+    def apply(): Parser[Reply] = new ParseSwitch[Reply](
+        '+' -> new SuccessParser,
+        '-' -> new FailureParser,
+        '*' -> new MultiParser,
+        ':' -> new IntParser,
+        '$' -> new StringParser
     )
 
+    /** Generates a human readable version of a byte array */
+    def readable ( bytes: Array[Byte] ) = {
+        bytes.map( (byte: Byte) => {
+            if ( byte == 9 ) "\\t"
+            else if ( byte == 10 ) "\\n"
+            else if ( byte == 13 ) "\\r"
+            else if ( byte < 33 || byte > 126 ) "\\x%02x".format(byte)
+            else "%c".format(byte)
+        }).mkString
+    }
 }
 
 /**
@@ -126,6 +134,10 @@ private[isred] trait Parser[+T] {
 
     /** Parses the given byte array */
     def parse ( bytes: Array[Byte], start: Int ): Parser.Result[T]
+
+    /** Parses a list of ints as bytes */
+    def parse ( bytes: Int* ): Parser.Result[T]
+        = parse( bytes.map( _.toByte ).toArray, 0 )
 
     /** Parses the given byte array */
     def parse ( bytes: Array[Byte] ): Parser.Result[T] = parse( bytes, 0 )
