@@ -26,12 +26,12 @@ trait Hashes extends Iface {
         = getInt( "HINCRBY" ::: key :: field :: increment :: Cmd() )
 
     /** Increment the float value of a hash field by the given amount */
-    def hIncrByFloat ( key: Key, field: Key, increment: Float ): FloatResult
+    def hIncrByFloat ( key: Key, field: Key, increment: Double ): FloatResult
         = getFloat( "HINCRBYFLOAT" ::: key :: field :: increment :: Cmd() )
 
     /** Get all the fields in a hash */
-    def hKeys[A : Convert] ( key: Key ): BulkSetResult[A]
-        = getBulkSet[A]( "HKEYS" ::: key :: Cmd() )
+    def hKeys( key: Key ): BulkSetResult[Key]
+        = getBulkSet[Key]( "HKEYS" ::: key :: Cmd() )
 
     /** Get the number of fields in a hash */
     def hLen ( key: Key ): IntResult = getInt( "HLEN" ::: key :: Cmd() )
@@ -39,8 +39,8 @@ trait Hashes extends Iface {
     /** Get the values of all the given hash fields */
     def hMGet[A : Convert] (
         key: Key, field: Key, fields: Key*
-    ): BulkMapResult[A] = {
-        getBulkMap[A]( "HMGET" ::: key :: field :: fields :: Cmd() )
+    ): BulkSeqResult[A] = {
+        getBulkSeq[A]( "HMGET" ::: key :: field :: fields :: Cmd() )
     }
 
     /** Set multiple hash fields to multiple values */
