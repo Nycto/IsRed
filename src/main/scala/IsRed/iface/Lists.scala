@@ -19,14 +19,14 @@ trait Lists extends Iface {
      * is available.
      */
     def bLPop[A : Convert] ( timeout: Int, key: Key, keys: Key* ): PopResult[A]
-        = getPop[A]( "BLPOP" ::: timeout :: key :: keys :: Cmd() )
+        = getPop[A]( "BLPOP" ::: key :: keys :: timeout :: Cmd() )
 
     /**
      * Remove and get the last element in a list, or block until one
      * is available
      */
     def bRPop[A : Convert] ( timeout: Int, key: Key, keys: Key* ): PopResult[A]
-        = getPop[A]( "BRPOP" ::: timeout :: key :: keys :: Cmd() )
+        = getPop[A]( "BRPOP" ::: key :: keys :: timeout :: Cmd() )
 
     /**
      * Pop a value from a list, push it to another list and return it; or
@@ -57,7 +57,7 @@ trait Lists extends Iface {
         = getOptBulk[A]( "LPOP" ::: key :: Cmd() )
 
     /** Prepend one or multiple values to a list */
-    def lPush ( key: Key, value: String, values: String ): IntResult
+    def lPush ( key: Key, value: String, values: String* ): IntResult
         = getInt( "LPUSH" ::: key :: value :: values :: Cmd() )
 
     /** Prepend a value to a list, only if the list exists */
@@ -70,6 +70,9 @@ trait Lists extends Iface {
     ): BulkSeqResult[A] = {
         getBulkSeq[A]( "LRANGE" ::: key :: start :: stop :: Cmd() )
     }
+
+    /** Get a range of elements from a list */
+    def lRange[A : Convert] ( key: Key ): BulkSeqResult[A] = lRange(key, 0, -1)
 
     /** Remove elements from a list */
     def lRem ( key: Key, count: Int, value: String ): IntResult
