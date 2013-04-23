@@ -170,5 +170,57 @@ class IntegrationTest extends Specification {
         }
     }
 
+    "Hash operations" should {
+
+        "Support basic ops: HSET, HGET, HDEL, HEXISTS, HLEN" in {
+            val key = "test-hash-basic"
+            await( redis.del(key) )
+            await( redis.hSet(key, "key", "value") ) must_== true
+            await( redis.hGet[String](key, "key") ) must_== Some("value")
+            await( redis.hExists(key, "key") ) must_== true
+            await( redis.hLen(key) ) must_== 1
+            await( redis.hDel(key, "key") ) must_== 1
+            await( redis.hLen(key) ) must_== 0
+        }
+
+        "Support list ops: HKEYS, HVALS" in {
+            val key = "test-hash-list"
+            await( redis.del(key) )
+            await( redis.hSet(key, "key1", "value1") )
+            await( redis.hSet(key, "key2", "value2") )
+            await( redis.hKeys(key) ) must_== Set[Key]("key1", "key2")
+            await( redis.hVals[String](key) ) must_== Seq("value1", "value2")
+        }
+
+        "Support bulk ops: HMGET, HMSET, HGETALL" in {
+            val key = "test-hash-bulk"
+            await( redis.del(key) )
+            await( redis.hMSet(
+                key, "key1" -> "val1", "key2" -> "val2", "key3" -> "val3"
+            ) ) must_== true
+            await( redis.hMGet[String](key, "key1", "key2") ) must_==
+                Seq( "val1", "val2" )
+            await( redis.hGetAll[String](key) ) must_==
+                Map( "key1" -> "val1", "key2" -> "val2", "key3" -> "val3" )
+        }
+
+        "Support increment ops: HINCRBY, HINCRBYFLOAT" in {
+            val key = "test-hash-inc"
+            await( redis.del(key) )
+            await( redis.hSet(key, "key", "0") )
+            await( redis.hIncrBy(key, "key", 1) ) must_== 1
+            await( redis.hIncrByFloat(key, "key", 3.14) ) must_== 4.14
+        }
+
+        "Support nonexisting ops: HSETNX" in {
+            val key = "test-hash-notexist"
+            await( redis.del(key) )
+            await( redis.hSetNX(key, "key", "value") ) must_== true
+            await( redis.hSetNX(key, "key", "value") ) must
+                throwA[UnsuccessfulReply]
+        }
+
+    }
+
 }
 
