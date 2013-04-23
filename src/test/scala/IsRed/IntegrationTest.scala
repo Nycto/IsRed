@@ -222,5 +222,91 @@ class IntegrationTest extends Specification {
 
     }
 
+    "List operations" should {
+
+        "Support right side ops: RPOP, RPUSH" in {
+            val key = "test-list-right"
+            await( redis.del(key) )
+            await( redis.rPush(key, "Value1", "Value2") ) must_== 2
+            await( redis.rPop[String](key) ) must_== Some("Value2")
+            await( redis.rPop[String](key) ) must_== Some("Value1")
+        }
+
+        "Support left side ops: LPOP, LPUSH" in {
+            val key = "test-list-left"
+            await( redis.del(key) )
+            await( redis.lPush(key, "Value1", "Value2") ) must_== 2
+            await( redis.lPop[String](key) ) must_== Some("Value2")
+            await( redis.lPop[String](key) ) must_== Some("Value1")
+        }
+
+        "Support index ops: LINDEX, LREM, LSET, LRANGE" in {
+            val key = "test-list-index"
+            await( redis.del(key) )
+            await( redis.rPush(key, "Value1", "Value2", "Value3") )
+            await( redis.lSet(key, 0, "Wakka") )
+            await( redis.lIndex[String](key, 0) ) must_== Some("Wakka")
+            await( redis.lRem(key, 0, "Value2") ) must_== 1
+            await( redis.lRange[String](key, 0, -1) ) must_==
+                Seq("Wakka", "Value3")
+        }
+
+        "Support length ops: LLEN, LTRIM" in {
+            val key = "test-list-length"
+            await( redis.del(key) )
+            await( redis.rPush(key, "Value1", "Value2", "Value3") )
+            await( redis.lLen(key) ) must_== 3
+            await( redis.lTrim(key, 0, 1) ) must_== true
+            await( redis.lRange[String](key) ) must_== Seq("Value1", "Value2")
+        }
+
+        "Support pop/push ops: RPOPLPUSH" in {
+            val key1 = "test-list-pop-push1"
+            val key2 = "test-list-pop-push2"
+            await( redis.del(key1, key2) )
+            await( redis.rPush(key1, "Value") )
+            await( redis.rPopLPush[String](key1, key2) ) must_== Some("Value")
+            await( redis.lRange[String](key2) ) must_== Seq("Value")
+        }
+
+        "Support blocking pop/push ops: BRPOPLPUSH" in {
+            val key1 = "test-list-blocking-pop-push1"
+            val key2 = "test-list-blocking-pop-push2"
+            await( redis.del(key1, key2) )
+            val popPush = redis.bRPopLPush[String](key1, key2, 10)
+            await( redis.rPush(key1, "Value") )
+            await( popPush ) must_== "Value"
+            await( redis.lRange[String](key2) ) must_== Seq("Value")
+        }
+
+        "Support blocking pop ops: BLPOP, BRPOP" in {
+            val key = "test-list-blocking-pop"
+            await( redis.del(key) )
+
+            val pop1 = redis.bLPop[String](10, key)
+            await( redis.rPush(key, "Value1") )
+            await( pop1 ) must_== (key -> "Value1")
+
+            val pop2 = redis.bRPop[String](10, key)
+            await( redis.rPush(key, "Value2") )
+            await( pop2 ) must_== (key -> "Value2")
+        }
+
+        "Support existing ops: LPUSHX, RPUSHX" in {
+            val key1 = "test-list-exist1"
+            val key2 = "test-list-exist2"
+            await( redis.del(key1, key2) )
+
+            await( redis.lPushX(key1, "Val") ) must_== 0
+            await( redis.lPush(key1, "Val") ) must_== 1
+            await( redis.lPushX(key1, "Val") ) must_== 2
+
+            await( redis.rPushX(key2, "Val") ) must_== 0
+            await( redis.rPush(key2, "Val") ) must_== 1
+            await( redis.rPushX(key2, "Val") ) must_== 2
+        }
+
+    }
+
 }
 
