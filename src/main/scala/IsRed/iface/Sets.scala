@@ -44,19 +44,16 @@ trait Sets extends Iface {
     def sPop[A : Convert] ( key: Key ): OptBulkResult[A]
         = getOptBulk[A]( "SPOP" ::: key :: Cmd() )
 
-    /** Get one or multiple random members from a set */
-    def sRandMember[A : Convert] (
-        key: Key, count: Option[Int] = None
-    ): BulkSetResult[A] = {
-        getBulkSet[A]( "SRANDMEMBER" ::: key :: count :: Cmd() )
-    }
+    /** Get a random member from a set */
+    def sRandMember[A : Convert] ( key: Key ): BulkSetResult[A]
+        = getBulkSet[A]( "SRANDMEMBER" ::: key :: Cmd() )
 
     /** Get one or multiple random members from a set */
     def sRandMember[A : Convert] ( key: Key, count: Int ): BulkSetResult[A]
-        = sRandMember( key, Some(count) )
+        = getBulkSet[A]( "SRANDMEMBER" ::: key :: count :: Cmd() )
 
     /** Remove one or more members from a set */
-    def sRem ( key: Key, member: String, members: String ): IntResult
+    def sRem ( key: Key, member: String, members: String* ): IntResult
         = getInt( "SREM" ::: key :: member :: members :: Cmd() )
 
     /** Add multiple sets */
