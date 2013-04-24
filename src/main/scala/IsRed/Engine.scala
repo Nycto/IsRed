@@ -127,15 +127,26 @@ private[isred] class Engine (
         (implicit context: ExecutionContext)
     : Future[Reply] = {
         pool.flatMap { chan => {
+
+            // Create a new parser and add it to the pipeline for this channel
             val parser = new ReplyDecoder
             val pipeline = chan.getPipeline
-
             pipeline.addLast( "parser", parser )
-            parser.future.onComplete { _ => pipeline.remove( parser ) }
 
+            // Ordering is important here. We need to make sure the parsing
+            // pipeline is removed before this channel is returned to the pool.
+            // Thus, we create a new promise that we manually complete
+            val result = Promise[Reply]()
+            parser.future.onComplete( parsed => {
+                pipeline.remove( parser )
+                result.complete( parsed )
+            })
+
+            // Once the parser is attached to the pipeline, we are ready to
+            // receive data, which means we are ready to WRITE data
             chan.write( command )
 
-            parser.future
+            result.future
         }}
     }
 
