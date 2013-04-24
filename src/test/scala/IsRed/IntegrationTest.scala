@@ -308,5 +308,84 @@ class IntegrationTest extends Specification {
 
     }
 
+    "Set operations" should {
+
+        "Support basic ops: SADD, SISMEMBER, SREM" in {
+            val key = "test-set-basic"
+            await( redis.del(key) )
+
+            await( redis.sAdd(key, "1", "2", "3") ) must_== 3
+            await( redis.sIsMember(key, "2") ) must_== true
+            await( redis.sRem(key, "1", "3") ) must_== 2
+            await( redis.sIsMember(key, "1") ) must_== false
+        }
+
+        "Support move op: SMOVE" in {
+            val key1 = "test-set-move1"
+            val key2 = "test-set-move2"
+            await( redis.del(key1, key2) )
+
+            await( redis.sAdd(key1, "Val") )
+            await( redis.sMove(key1, key2, "Val") ) must_== true
+            await( redis.sIsMember(key2, "Val") ) must_== true
+        }
+
+        "Support access ops: SPOP, SRANDMEMBER" in {
+            val key = "test-set-access"
+            await( redis.del(key) )
+            await( redis.sAdd(key, "1") )
+            await( redis.sRandMember[Int](key, 1) ) must_== Set(1)
+            await( redis.sPop[Int](key) ) must_== Some(1)
+        }
+
+        "Support bulk ops: SCARD, SMEMBERS" in {
+            val key = "test-set-bulk"
+            await( redis.del(key) )
+            await( redis.sAdd(key, "1", "2", "3") )
+            await( redis.sCard(key) ) must_== 3
+            await( redis.sMembers[Int](key) ) must_== Set(1, 2, 3)
+        }
+
+        "Support intersect ops: SINTER, SINTERSTORE" in {
+            val key1 = "test-set-inter1"
+            val key2 = "test-set-inter2"
+            val key3 = "test-set-inter3"
+            await( redis.del(key1, key2, key3) )
+            await( redis.sAdd(key1, "1", "2", "3") )
+            await( redis.sAdd(key2, "1", "3") )
+
+            await( redis.sInter[Int](key1, key2) ) must_== Set(1, 3)
+            await( redis.sInterStore(key3, key1, key2) ) must_== 2
+            await( redis.sMembers[Int](key3) ) must_== Set(1, 3)
+        }
+
+        "Support diff ops: SDIFF, SDIFFSTORE" in {
+            val key1 = "test-set-diff1"
+            val key2 = "test-set-diff2"
+            val key3 = "test-set-diff3"
+            await( redis.del(key1, key2, key3) )
+            await( redis.sAdd(key1, "1", "2", "3") )
+            await( redis.sAdd(key2, "2") )
+
+            await( redis.sDiff[Int](key1, key2) ) must_== Set(1, 3)
+            await( redis.sDiffStore(key3, key1, key2) ) must_== 2
+            await( redis.sMembers[Int](key3) ) must_== Set(1, 3)
+        }
+
+        "Support union ops: SUNION, SUNIONSTORE" in {
+            val key1 = "test-set-union1"
+            val key2 = "test-set-union2"
+            val key3 = "test-set-union3"
+            await( redis.del(key1, key2, key3) )
+            await( redis.sAdd(key1, "1", "2") )
+            await( redis.sAdd(key2, "3", "4") )
+
+            await( redis.sUnion[Int](key1, key2) ) must_== Set(1, 2, 3, 4)
+            await( redis.sUnionStore(key3, key1, key2) ) must_== 4
+            await( redis.sMembers[Int](key3) ) must_== Set(1, 2, 3, 4)
+        }
+
+    }
+
 }
 
