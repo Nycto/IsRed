@@ -63,6 +63,42 @@ private[isred] class ReplyDecoder  extends SimpleChannelUpstreamHandler {
 }
 
 /**
+ * An individual connection
+ */
+class RedisChannel ( private val channel: Channel ) {
+
+    /** Closes this connection */
+    def close: Unit = channel.close
+
+    /** Sends the given command over the wire */
+    def send
+        ( command: Command )
+        (implicit context: ExecutionContext)
+    : Future[Reply] = {
+
+        // Create a new parser and add it to the pipeline for this channel
+        val parser = new ReplyDecoder
+        val pipeline = channel.getPipeline
+        pipeline.addLast( "parser", parser )
+
+        // Ordering is important here. We need to make sure the parsing
+        // pipeline is removed before this channel is returned to the pool.
+        // Thus, we create a new promise that we manually complete
+        val result = Promise[Reply]()
+        parser.future.onComplete( parsed => {
+            pipeline.remove( parser )
+            result.complete( parsed )
+        })
+
+        // Once the parser is attached to the pipeline, we are ready to
+        // receive data, which means we are ready to WRITE data
+        channel.write( command )
+
+        result.future
+    }
+}
+
+/**
  * A pool of Netty Channels
  */
 private[isred] class ChannelPool (
@@ -91,17 +127,17 @@ private[isred] class ChannelPool (
             })
 
     /** The pool of open connections */
-    private val pool = Pool[Channel](
+    private val pool = Pool[RedisChannel](
         max = maxConnect,
-        builder = () => builder.connect,
-        onRetire = (channel: Channel) => { channel.close; () }
+        builder = () =>  builder.connect.map( chan => new RedisChannel(chan) ),
+        onRetire = (conn: RedisChannel) => conn.close
     )
 
     /** Shuts down all the resources associated with this instace */
     def shutdown: Unit = netty.shutdown
 
     /** Returns a netty channel */
-    def flatMap( callback: Channel => Future[Reply] ): Future[Reply]
+    def flatMap( callback: RedisChannel => Future[Reply] ): Future[Reply]
         = pool.flatMap( callback )
 }
 
@@ -116,38 +152,19 @@ private[isred] class Engine (
 ) {
 
     /** The pool of channels */
-    private val pool = new ChannelPool(host, port, maxConnect, connectTimeout)
+    private val pool = new ChannelPool(
+        host, port, maxConnect, connectTimeout
+    )
 
     /** Shuts down all the resources associated with this instace */
     def shutdown: Unit = pool.shutdown
 
-    /** Sends the given command over the wire */
+    /** Sends a single command over the wire */
     def send
         ( command: Command )
-        (implicit context: ExecutionContext)
+        ( implicit context: ExecutionContext )
     : Future[Reply] = {
-        pool.flatMap { chan => {
-
-            // Create a new parser and add it to the pipeline for this channel
-            val parser = new ReplyDecoder
-            val pipeline = chan.getPipeline
-            pipeline.addLast( "parser", parser )
-
-            // Ordering is important here. We need to make sure the parsing
-            // pipeline is removed before this channel is returned to the pool.
-            // Thus, we create a new promise that we manually complete
-            val result = Promise[Reply]()
-            parser.future.onComplete( parsed => {
-                pipeline.remove( parser )
-                result.complete( parsed )
-            })
-
-            // Once the parser is attached to the pipeline, we are ready to
-            // receive data, which means we are ready to WRITE data
-            chan.write( command )
-
-            result.future
-        }}
+        pool.flatMap( _.send(command) )
     }
 
 }
