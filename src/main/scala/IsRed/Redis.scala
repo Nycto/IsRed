@@ -10,7 +10,8 @@ import scala.reflect.ClassTag
 class Redis
     ( private val engine: Engine )
     ( implicit context: ExecutionContext )
-extends Iface with Hashes with Keys with Lists with Sets with Strings {
+extends Iface with Hashes with Keys with Lists
+with Sets with Strings with Connection {
 
     /** Constructs a new redis interface */
     def this(

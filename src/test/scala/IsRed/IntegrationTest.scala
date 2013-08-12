@@ -387,5 +387,13 @@ class IntegrationTest extends Specification {
 
     }
 
+    "Connection operations" should {
+
+        "Support connection ops: ECHO, PING" in {
+            await( redis.ping ) must_== true
+            await( redis.echo("test") ) must_== "test"
+        }
+    }
+
 }
 
