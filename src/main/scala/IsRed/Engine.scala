@@ -117,7 +117,8 @@ extends Sendable {
  */
 private[isred] class ChannelPool (
     host: String, port: Int,
-    maxConnect: Int, connectTimeout: Int
+    maxConnect: Int, connectTimeout: Int,
+    onConnect: (RedisChannel) => Future[_]
 )(
     implicit context: ExecutionContext
 ) {
@@ -143,7 +144,12 @@ private[isred] class ChannelPool (
     /** The pool of open connections */
     private val pool = Pool[RedisChannel](
         max = maxConnect,
-        builder = () =>  builder.connect.map( chan => new RedisChannel(chan) ),
+        builder = () => {
+            builder.connect.flatMap( nettyChan => {
+                val chan = new RedisChannel( nettyChan )
+                onConnect(chan).map( _ => chan )
+            } )
+        },
         onRetire = (conn: RedisChannel) => conn.close
     )
 
@@ -160,14 +166,15 @@ private[isred] class ChannelPool (
  */
 private[isred] class Engine (
     host: String, port: Int,
-    maxConnect: Int, connectTimeout: Int
+    maxConnect: Int, connectTimeout: Int,
+    onConnect: (Sendable) => Future[_]
 )(
     implicit context: ExecutionContext
 ) extends Sendable {
 
     /** The pool of channels */
     private val pool = new ChannelPool(
-        host, port, maxConnect, connectTimeout
+        host, port, maxConnect, connectTimeout, onConnect
     )
 
     /** Shuts down all the resources associated with this instace */

@@ -18,9 +18,12 @@ with Sets with Strings with Connection {
         host: String,
         port: Int = 6379,
         maxConnect: Int = 5,
-        connectTimeout: Int = 2000
-    )( implicit context: ExecutionContext )
-        = this ( new Engine(host, port, maxConnect, connectTimeout) )
+        connectTimeout: Int = 2000,
+        onConnect: Function1[Redis,Future[_]] = (_) => Future.successful(Unit)
+    )( implicit context: ExecutionContext ) = this( new Engine(
+        host, port, maxConnect, connectTimeout,
+        (channel) => onConnect( new Redis(channel) )
+    ) )
 
     /** Shuts down all the resources associated with this instace */
     def shutdown: Unit = engine.close
