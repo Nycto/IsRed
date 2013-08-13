@@ -8,7 +8,7 @@ import scala.reflect.ClassTag
  * An interface for constructing Redis commands
  */
 class Redis
-    ( private val engine: Engine )
+    ( private val engine: Sendable )
     ( implicit context: ExecutionContext )
 extends Iface with Hashes with Keys with Lists
 with Sets with Strings with Connection {
@@ -23,7 +23,7 @@ with Sets with Strings with Connection {
         = this ( new Engine(host, port, maxConnect, connectTimeout) )
 
     /** Shuts down all the resources associated with this instace */
-    def shutdown: Unit = engine.shutdown
+    def shutdown: Unit = engine.close
 
     /** {@inheritDoc} */
     type AckResult = Future[Boolean]

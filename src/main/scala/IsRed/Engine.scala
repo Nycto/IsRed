@@ -4,6 +4,17 @@ import scala.concurrent.{Future, Promise, ExecutionContext}
 import org.jboss.netty.channel._
 import org.jboss.netty.buffer._
 
+/**
+ * An interface to which commands can be sent
+ */
+trait Sendable {
+
+    /** Shuts down all the resources associated with this instace */
+    def close: Unit
+
+    /** Sends the given command over the wire */
+    def send ( command: Command ): Future[Reply]
+}
 
 /**
  * Encodes a command as a ChannelBuffer
@@ -65,16 +76,19 @@ private[isred] class ReplyDecoder  extends SimpleChannelUpstreamHandler {
 /**
  * An individual connection
  */
-class RedisChannel ( private val channel: Channel ) {
+class RedisChannel
+    ( private val channel: Channel )
+    ( implicit context: ExecutionContext )
+extends Sendable {
+
+    /** The queue of operations to execute */
+    private val work = new WorkList[Reply]
 
     /** Closes this connection */
-    def close: Unit = channel.close
+    override def close: Unit = channel.close
 
     /** Sends the given command over the wire */
-    def send
-        ( command: Command )
-        (implicit context: ExecutionContext)
-    : Future[Reply] = {
+    override def send ( command: Command ): Future[Reply] = work.run {
 
         // Create a new parser and add it to the pipeline for this channel
         val parser = new ReplyDecoder
@@ -149,7 +163,7 @@ private[isred] class Engine (
     maxConnect: Int, connectTimeout: Int
 )(
     implicit context: ExecutionContext
-) {
+) extends Sendable {
 
     /** The pool of channels */
     private val pool = new ChannelPool(
@@ -157,15 +171,11 @@ private[isred] class Engine (
     )
 
     /** Shuts down all the resources associated with this instace */
-    def shutdown: Unit = pool.shutdown
+    override def close: Unit = pool.shutdown
 
     /** Sends a single command over the wire */
-    def send
-        ( command: Command )
-        ( implicit context: ExecutionContext )
-    : Future[Reply] = {
-        pool.flatMap( _.send(command) )
-    }
+    override def send ( command: Command ): Future[Reply]
+        = pool.flatMap( _.send(command) )
 
 }
 
