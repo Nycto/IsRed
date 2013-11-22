@@ -11,6 +11,10 @@ trait Iface {
     type Convert[A] = (Reply) => A
 
 
+    /** A generic reply that could be any type */
+    type AnyResult[A]
+
+
     /** A success or failure result */
     type AckResult
 
@@ -59,6 +63,10 @@ trait Iface {
 
     /** A result describing the type of a key */
     type KeyTypeResult
+
+
+    /** A result of any type */
+    private[isred] def getAny[A: Convert]( command: Command ): AnyResult[A]
 
 
     /** A success or failure result */

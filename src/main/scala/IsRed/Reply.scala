@@ -29,6 +29,10 @@ object Reply {
 
     /** Convert to a byte array */
     implicit def reply2bytes ( reply: Reply ) = reply.asBytes
+
+    /** Converts a reply to a sequence */
+    implicit def reply2stringSeq ( reply: Reply )
+        = reply.asSeq.map( _.asString )
 }
 
 

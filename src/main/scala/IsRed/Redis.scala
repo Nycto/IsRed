@@ -11,7 +11,7 @@ class Redis
     ( private val engine: Sendable )
     ( implicit context: ExecutionContext )
 extends Iface with Hashes with Keys with Lists
-with Sets with Strings with Connection {
+with Sets with Strings with Connection with Scripting {
 
     /** Constructs a new redis interface */
     def this(
@@ -27,6 +27,9 @@ with Sets with Strings with Connection {
 
     /** Shuts down all the resources associated with this instace */
     def shutdown: Unit = engine.close
+
+    /** {@inheritDoc} */
+    type AnyResult[A] = Future[A]
 
     /** {@inheritDoc} */
     type AckResult = Future[Boolean]
@@ -69,6 +72,11 @@ with Sets with Strings with Connection {
 
     /** {@inheritDoc} */
     type KeyTypeResult = Future[KeyType.Type]
+
+    /** {@inheritDoc} */
+    override private[isred] def getAny[A: Convert](
+        command: Command
+    ): AnyResult[A] = engine.send( command ).map( implicitly[Reply => A] _ )
 
     /** {@inheritDoc} */
     override private[isred] def getAck( command: Command ): AckResult

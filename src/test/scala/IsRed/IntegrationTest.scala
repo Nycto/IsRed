@@ -395,5 +395,31 @@ class IntegrationTest extends Specification {
         }
     }
 
+    "Script operations" should {
+
+        "Support script ops: EVAL" in {
+            await( redis.eval[Int]("return 123") ) must_== 123
+
+            await( redis.eval[Seq[String]](
+                "return {KEYS[1],KEYS[2],ARGV[1],ARGV[2]}",
+                Key("key1") :: Key("key2") :: Nil,
+                "first" :: "second" :: Nil
+            ) ) must_== Seq("key1", "key2", "first", "second")
+        }
+
+        "Support script ops: SCRIPT LOAD, SCRIPT EXISTS, SCRIPT FLUSH" in {
+            val hash = await( redis.scriptLoad("return 123") )
+            await( redis.scriptExists(hash) ) must_== Seq(true)
+            await( redis.scriptFlush ) must_== true
+            await( redis.scriptExists(hash) ) must_== Seq(false)
+        }
+
+        "Support script ops: SCRIPT KILL" in {
+            val err = await( redis.scriptKill.failed )
+            err must beAnInstanceOf[ReplyError]
+            err.asInstanceOf[ReplyError].code must_== "NOTBUSY"
+        }
+    }
+
 }
 
