@@ -13,20 +13,24 @@ class IntegrationTest extends Specification {
         Await.result( future, Duration(10, "second") )
     }
 
+    // The port to use for testing live redis connections.. We use a different
+    // port than the redis default to make sure that running the integration
+    // tests is an explicit decision
+    val port = 7357
 
     // Try to connect port 7537. We use a different port than the redis default
     // to make sure that running the integration tests is an explicit decision
     try {
-        val socket = new Socket("localhost", 7357);
+        val socket = new Socket("127.0.0.1", port);
         socket.close
     } catch {
         case e: Throwable => {
-            println("Could not find a Redis server running on port 7357")
+            println("Could not find a Redis server running on port " + port)
             args(skipAll = true)
         }
     }
 
-    lazy val redis = new Redis("localhost", 7357)
+    lazy val redis = new Redis("localhost", port)
 
 
     "Strings operations" should {
