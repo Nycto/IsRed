@@ -87,5 +87,49 @@ class ReplyTest extends Specification {
         }
     }
 
+    "Implicitly casting a reply" should {
+
+        "Convert to primitives" in {
+            implicitly[Boolean]( IntReply(1) ) must_== true
+            implicitly[Int]( IntReply(123) ) must_== 123
+            implicitly[Double]( StringReply("3.1415") ) must_== 3.1415d
+            implicitly[Float]( StringReply("3.1415") ) must_== 3.1415f
+            implicitly[String]( StringReply("Test") ) must_== "Test"
+        }
+
+        "Convert to a key" in {
+            implicitly[Key]( StringReply("Test") ) must_== Key("Test")
+
+            implicitly[KeyType.Type]( StringReply("set") ) must_== KeyType.SET
+        }
+
+        "Convert to a byte array" in {
+            implicitly[Array[Byte]]( StringReply("Test") ) must_==
+                Array('T', 'e', 's', 't')
+        }
+
+        "Convert to sequences" in {
+            implicitly[Seq[Boolean]]( MultiReply(
+                IntReply(1), IntReply(0) ) ) must_==
+                    Seq(true, false)
+
+            implicitly[Seq[Int]]( MultiReply(
+                IntReply(123), IntReply(456) ) ) must_==
+                    Seq(123, 456)
+
+            implicitly[Seq[Double]]( MultiReply(
+                StringReply("3.1415"), StringReply("2.78") ) ) must_==
+                    Seq( 3.1415d, 2.78d )
+
+            implicitly[Seq[Float]]( MultiReply(
+                StringReply("3.1415"), StringReply("2.78") ) ) must_==
+                    Seq( 3.1415f, 2.78f )
+
+            implicitly[Seq[String]]( MultiReply(
+                StringReply("one"), StringReply("two") ) ) must_==
+                    Seq("one", "two")
+        }
+    }
+
 }
 

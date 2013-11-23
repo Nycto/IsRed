@@ -6,33 +6,49 @@ import scala.language.implicitConversions
 object Reply {
 
     /** Convert to an Boolean */
-    implicit def reply2bool ( reply: Reply ) = reply.asBool
+    implicit def reply2bool ( reply: Reply ): Boolean = reply.asBool
 
     /** Convert to an Int */
-    implicit def reply2int ( reply: Reply ) = reply.asInt
+    implicit def reply2int ( reply: Reply ): Int = reply.asInt
 
     /** Convert to a Double */
-    implicit def reply2double ( reply: Reply ) = reply.asDouble
+    implicit def reply2double ( reply: Reply ): Double = reply.asDouble
 
     /** Convert to a float */
-    implicit def reply2float ( reply: Reply ) = reply.asDouble.toFloat
+    implicit def reply2float ( reply: Reply ): Float = reply.asDouble.toFloat
 
     /** Convert to a String */
-    implicit def reply2string ( reply: Reply ) = reply.asString
+    implicit def reply2string ( reply: Reply ): String = reply.asString
 
     /** Convert to a Key */
-    implicit def reply2key ( reply: Reply ) = Key( reply.asString )
+    implicit def reply2key ( reply: Reply ): Key = Key( reply.asString )
 
     /** Convert to a KeyType */
-    implicit def reply2keytype ( reply: Reply )
+    implicit def reply2keytype ( reply: Reply ): KeyType.Type
         = KeyType.fromString( reply.asString )
 
     /** Convert to a byte array */
     implicit def reply2bytes ( reply: Reply ) = reply.asBytes
 
-    /** Converts a reply to a sequence */
-    implicit def reply2stringSeq ( reply: Reply )
+    /** Converts a reply to a sequence of Strings*/
+    implicit def reply2stringSeq ( reply: Reply ): Seq[String]
         = reply.asSeq.map( _.asString )
+
+    /** Converts a reply to a sequence of ints */
+    implicit def reply2intSeq ( reply: Reply ): Seq[Int]
+        = reply.asSeq.map( _.asInt )
+
+    /** Converts a reply to a sequence of double */
+    implicit def reply2doubleSeq ( reply: Reply ): Seq[Double]
+        = reply.asSeq.map( _.asDouble )
+
+    /** Converts a reply to a sequence of float */
+    implicit def reply2floatSeq ( reply: Reply ): Seq[Float]
+        = reply.asSeq.map( _.asDouble.toFloat )
+
+    /** Converts a reply to a sequence of booleans */
+    implicit def reply2boolSeq ( reply: Reply ): Seq[Boolean]
+        = reply.asSeq.map( _.asBool )
 }
 
 
