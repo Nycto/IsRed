@@ -22,7 +22,7 @@ Then, just add this to your `build.sbt` file and recompile:
 
 ```
 libraryDependencies ++= Seq(
-    "com.roundeights" %% "isred" % "0.1"
+    "com.roundeights" %% "isred" % "0.2"
 )
 ```
 
