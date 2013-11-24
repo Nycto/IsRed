@@ -5,6 +5,15 @@ import scala.language.implicitConversions
 /** Reply companion */
 object Reply {
 
+    /** Builds a Null reply */
+    def apply () = NullReply()
+
+    /** Builds a String reply */
+    def apply ( value: String ) = StringReply( value )
+
+    /** Builds an int reply */
+    def apply ( value: Int ) = IntReply( value )
+
     /** Convert to an Boolean */
     implicit def reply2bool ( reply: Reply ): Boolean = reply.asBool
 
