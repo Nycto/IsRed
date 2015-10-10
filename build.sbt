@@ -15,7 +15,7 @@ credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 // Application dependencies
 libraryDependencies ++= Seq(
-    "io.netty" % "netty" % "3.+",
+    "io.netty" % "netty" % "3.10+",
     "org.specs2" %% "specs2" % "2.3.+" % "test"
 )
 
