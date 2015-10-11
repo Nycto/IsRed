@@ -2,7 +2,7 @@ name := "IsRed"
 
 organization := "com.roundeights"
 
-version := "0.2.1"
+version := "0.2.2"
 
 scalaVersion := "2.11.7"
 
@@ -15,7 +15,7 @@ credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 // Application dependencies
 libraryDependencies ++= Seq(
-    "io.netty" % "netty" % "3.10+",
+    "io.netty" % "netty" % "[3.10.4.Final,4)",
     "org.specs2" %% "specs2" % "2.3.+" % "test"
 )
 
